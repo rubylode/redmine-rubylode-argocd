@@ -20,6 +20,8 @@ module RubylodeArgocd
   class Settings
     PLUGIN_ID = "redmine_rubylode_argocd".freeze
     COMMENT_PREFIX = "#".freeze
+    DEFAULT_BLOCK_TITLE = "Applications".freeze
+    VISIBILITIES = %w[logged_in admins].freeze
     # Only variables meant for this plugin may be read, so the settings cannot send another secret (the secret key
     # base, a database password) to an address of the administrator's choosing.
     TOKEN_VARIABLE_PATTERN = /\AARGOCD_[A-Z0-9_]+\z/
@@ -47,6 +49,33 @@ module RubylodeArgocd
         name, address, token_variable = line.split("|", 3).map(&:strip)
         Instance.new(name: name.to_s, address: address.to_s.chomp("/"), token_variable: token_variable.to_s)
       end
+    end
+
+    # Apps to show, for one instance: app name => label. Empty means every app the instance has. A line is
+    # `Instance | app name | label`; without a label the app name is the label.
+    def apps_to_show_for(instance_name)
+      @values["apps_to_show"].to_s.lines.map(&:strip).reject { |line| line.empty? || line.start_with?(COMMENT_PREFIX) }.each_with_object({}) do |line, wanted|
+        instance, app, label = line.split("|", 3).map(&:strip)
+        next unless instance == instance_name && !app.to_s.empty?
+
+        wanted[app] = label.to_s.empty? ? app : label
+      end
+    end
+
+    def block_title
+      title = @values["block_title"].to_s.strip
+      title.empty? ? DEFAULT_BLOCK_TITLE : title
+    end
+
+    def visibility
+      VISIBILITIES.include?(@values["visibility"].to_s) ? @values["visibility"].to_s : "logged_in"
+    end
+
+    # Anonymous never; the signed in, or administrators only.
+    def visible_to?(user)
+      return false unless user&.logged?
+
+      visibility == "admins" ? user.admin? : true
     end
 
     def allow_plain_http?

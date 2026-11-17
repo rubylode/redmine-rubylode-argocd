@@ -16,9 +16,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 class RubylodeArgocdStatusController < ApplicationController
-  before_action :require_admin
+  before_action :require_login
+  before_action :require_permission_to_see_status
 
   def show
     @settings = RubylodeArgocd::Settings.current
+  end
+
+  private
+
+  def require_permission_to_see_status
+    deny_access unless RubylodeArgocd::Settings.current.visible_to?(User.current)
   end
 end

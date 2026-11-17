@@ -76,13 +76,15 @@ class RubylodeArgocdSeveralInstancesTest < Redmine::IntegrationTest
     assert_select ".rubylode-argocd-instance:nth-of-type(2) tbody tr", 0
   end
 
-  test "a person who is not an administrator is turned away, so the reason is never shown to them" do
+  test "a signed in person who is not an administrator sees Status unavailable and never the reason" do
     @second.failure = "server_error"
 
     log_user("jsmith", "jsmith")
     get "/status/argocd"
 
-    assert_response :forbidden
+    assert_response :success
+    assert_select ".rubylode-argocd-instance:nth-of-type(2) .rubylode-argocd-unavailable", text: "Status unavailable"
+    assert_select ".rubylode-argocd-hint", 0
     refute_includes response.body, "Argo CD answered 500"
   end
 

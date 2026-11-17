@@ -27,6 +27,6 @@ Redmine::Plugin.register :redmine_rubylode_argocd do
   requires_redmine version_or_higher: "5.1.0"
 
   settings default: { "instances" => "", "cache_seconds" => "60", "failure_cache_seconds" => "30", "timeout_seconds" => "3",
-                       "allow_plain_http" => "0" },
+                       "allow_plain_http" => "0", "apps_to_show" => "", "block_title" => "Applications", "visibility" => "logged_in" },
            partial: "settings/rubylode_argocd"
 end

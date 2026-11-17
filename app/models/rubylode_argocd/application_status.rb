@@ -25,7 +25,7 @@ module RubylodeArgocd
     # failing_resources lists what is wrong under an app that is not Healthy. detail_skipped is true when the app was
     # left out of the resource-tree calls because the cap was reached.
     Row = Struct.new(:name, :namespace, :project, :health, :sync, :finished_at, :revision, :source_count,
-                     :failing_resources, :detail_skipped, keyword_init: true)
+                     :failing_resources, :detail_skipped, :needs_attention, :label, keyword_init: true)
 
     FailingResource = Struct.new(:kind, :namespace, :name, :health, :message, keyword_init: true)
 
@@ -43,9 +43,37 @@ module RubylodeArgocd
       end
     end
 
-    # What one instance's section shows: its rows, or the reason it could not be asked.
-    Report = Struct.new(:rows, :unavailable, :failure_reason, keyword_init: true) do
+    # What one instance's section shows: its rows, or the reason it could not be asked. unknown_apps names the apps
+    # listed in Apps to show that the instance does not have.
+    Report = Struct.new(:rows, :unavailable, :failure_reason, :unknown_apps, keyword_init: true) do
       alias_method :unavailable?, :unavailable
+
+      def unknown_apps
+        self[:unknown_apps] || []
+      end
+    end
+
+    # The line above the sections. Rows of an unavailable instance are not counted.
+    Summary = Struct.new(:app_count, :attention_count, :unavailable_instance_count, keyword_init: true) do
+      def text
+        counted = if app_count.zero?
+          I18n.t("rubylode_argocd.summary.no_apps")
+        elsif attention_count.zero?
+          I18n.t("rubylode_argocd.summary.all_fine", count: app_count)
+        else
+          I18n.t("rubylode_argocd.summary.need_attention", attention: attention_count, total: app_count)
+        end
+        return counted if unavailable_instance_count.zero?
+
+        "#{counted}. #{I18n.t("rubylode_argocd.summary.unavailable_instances", count: unavailable_instance_count)}"
+      end
+    end
+
+    def self.summary_for(reports)
+      available = reports.reject(&:unavailable?)
+      rows = available.flat_map(&:rows)
+      Summary.new(app_count: rows.size, attention_count: rows.count(&:needs_attention),
+                  unavailable_instance_count: reports.size - available.size)
     end
 
     FAILURE_KEY = "failure".freeze
@@ -56,11 +84,22 @@ module RubylodeArgocd
       payload = read_cache(instance) || fetch_and_cache(instance, configuration)
       return Report.new(rows: [], unavailable: true, failure_reason: failure_reason_from(payload)) if payload.key?(FAILURE_KEY)
 
-      Report.new(rows: rows_from(payload["answer"], payload["resource_trees"]), unavailable: false, failure_reason: nil)
+      rows = rows_from(payload["answer"], payload["resource_trees"])
+      wanted = configuration.apps_to_show_for(instance.name)
+      return Report.new(rows: rows, unavailable: false, failure_reason: nil, unknown_apps: []) if wanted.empty?
+
+      Report.new(rows: narrowed_to(rows, wanted), unavailable: false, failure_reason: nil,
+                 unknown_apps: wanted.keys - rows.map(&:name))
     rescue StandardError => error
       Rails.logger.warn("Rubylode Argo CD: could not build the section for #{instance.name}: #{error.class}")
       Report.new(rows: [], unavailable: true, failure_reason: error.class.name)
     end
+
+    # Only the wanted apps, each with the label the administrator gave it.
+    def self.narrowed_to(rows, wanted)
+      rows.select { |row| wanted.key?(row.name) }.each { |row| row.label = wanted[row.name] }
+    end
+    private_class_method :narrowed_to
 
     def self.fetch_and_cache(instance, configuration)
       client = ArgocdClient.new(instance: instance, timeout_seconds: configuration.timeout_seconds,
@@ -132,7 +171,8 @@ module RubylodeArgocd
     # resource_trees maps "namespace/name" to the tree asked for that app (nil when the call failed). Leave it nil when
     # no trees were asked for at all.
     def self.rows_from(answer, resource_trees = nil)
-      Array(answer["items"]).map { |application| row_from(application, resource_trees) }
+      rows = Array(answer["items"]).map { |application| row_from(application, resource_trees) }
+      rows.sort_by { |row| [row.needs_attention ? 0 : 1, row.name] }
     end
 
     def self.row_from(application, resource_trees)
@@ -140,17 +180,19 @@ module RubylodeArgocd
       revision = application.dig("status", "sync", "revision").to_s
       health = application.dig("status", "health", "status").to_s
       key = application_key(application)
+      sync = application.dig("status", "sync", "status").to_s
       Row.new(
         name: application.dig("metadata", "name").to_s,
         namespace: application.dig("metadata", "namespace").to_s,
         project: application.dig("spec", "project").to_s,
         health: health,
-        sync: application.dig("status", "sync", "status").to_s,
+        sync: sync,
         finished_at: time_from(application.dig("status", "operationState", "finishedAt")),
         revision: sources.empty? && !revision.empty? ? revision[0, SHORT_REVISION_LENGTH] : nil,
         source_count: sources.empty? ? nil : sources.size,
         failing_resources: failing_resources_from(application, resource_trees&.dig(key)),
-        detail_skipped: !resource_trees.nil? && health != HEALTHY && !resource_trees.key?(key)
+        detail_skipped: !resource_trees.nil? && health != HEALTHY && !resource_trees.key?(key),
+        needs_attention: AttentionRule.needs_attention?(health, sync)
       )
     end
     private_class_method :row_from

@@ -19,6 +19,16 @@ en:
     settings_page:
       placeholder: The settings for Argo CD instances arrive in a later release.
       instances: Instances
+    summary:
+      no_apps: No apps to show
+      all_fine:
+        one: "All 1 app healthy and synced"
+        other: "All %{count} apps healthy and synced"
+      need_attention: "%{attention} of %{total} need attention"
+      unavailable_instances:
+        one: "1 instance is unavailable and its apps are not counted."
+        other: "%{count} instances are unavailable and their apps are not counted."
+    unknown_apps: "Not found in %{instance}: %{apps}"
     status:
       unavailable: Status unavailable
     hints:

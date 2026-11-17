@@ -1,16 +1,20 @@
-<% html_title l("rubylode_argocd.status_page.title") %>
+<% html_title @settings.block_title %>
 <% content_for :header_tags, stylesheet_link_tag("rubylode_argocd", plugin: "redmine_rubylode_argocd") %>
-<h2><%= l("rubylode_argocd.status_page.title") %></h2>
-<% @settings.instances.each do |instance| %>
+<h2><%= @settings.block_title %></h2>
+<% reports = @settings.instances.to_h { |instance| [instance, RubylodeArgocd::ApplicationStatus.report_for(instance, @settings)] } %>
+<p class="rubylode-argocd-summary"><%= RubylodeArgocd::ApplicationStatus.summary_for(reports.values).text %></p>
+<% reports.each do |instance, report| %>
   <div class="rubylode-argocd-instance">
     <h3 class="rubylode-argocd-instance-name"><%= instance.name %></h3>
-    <% report = RubylodeArgocd::ApplicationStatus.report_for(instance, @settings) %>
     <% if report.unavailable? %>
       <p class="rubylode-argocd-unavailable"><%= l("rubylode_argocd.status.unavailable") %></p>
       <% if User.current.admin? %>
         <p class="rubylode-argocd-hint"><%= l("rubylode_argocd.hints.reason", reason: report.failure_reason) %></p>
       <% end %>
     <% else %>
+    <% if User.current.admin? && report.unknown_apps.any? %>
+      <p class="rubylode-argocd-note"><%= l("rubylode_argocd.unknown_apps", instance: instance.name, apps: report.unknown_apps.join(", ")) %></p>
+    <% end %>
     <table class="list rubylode-argocd-table">
       <thead>
         <tr>
@@ -25,7 +29,7 @@
       <tbody>
         <% report.rows.each do |row| %>
           <tr class="rubylode-argocd-row">
-            <td class="rubylode-argocd-name"><%= link_to row.name, "#{instance.address}/applications/#{ERB::Util.url_encode(row.namespace)}/#{ERB::Util.url_encode(row.name)}" %>
+            <td class="rubylode-argocd-name"><%= link_to (row.label || row.name), "#{instance.address}/applications/#{ERB::Util.url_encode(row.namespace)}/#{ERB::Util.url_encode(row.name)}" %>
               <% if row.failing_resources.any? %>
                 <ul class="rubylode-argocd-resources">
                   <% row.failing_resources.each do |resource| %>

@@ -114,3 +114,59 @@ class RubylodeArgocdApplicationStatusTest < ActiveSupport::TestCase
     refute row.detail_skipped
   end
 end
+
+class RubylodeArgocdAttentionTest < ActiveSupport::TestCase
+  def answer_with(*apps)
+    { "items" => apps.map do |name, health, sync|
+      { "metadata" => { "name" => name, "namespace" => "argocd" }, "spec" => { "project" => "default" },
+        "status" => { "health" => { "status" => health }, "sync" => { "status" => sync } } }
+    end }
+  end
+
+  def report_of(rows, unavailable: false)
+    RubylodeArgocd::ApplicationStatus::Report.new(rows: rows, unavailable: unavailable, failure_reason: nil)
+  end
+
+  test "an app needs attention when it is Degraded, Missing or Unknown, or OutOfSync, and Progressing and Suspended do not count" do
+    expected = {
+      ["Healthy", "Synced"] => false, ["Healthy", "OutOfSync"] => true, ["Healthy", "Unknown"] => false,
+      ["Degraded", "Synced"] => true, ["Degraded", "OutOfSync"] => true,
+      ["Missing", "Synced"] => true, ["Missing", "OutOfSync"] => true,
+      ["Unknown", "Synced"] => true, ["Unknown", "OutOfSync"] => true,
+      ["Progressing", "Synced"] => false, ["Progressing", "OutOfSync"] => true,
+      ["Suspended", "Synced"] => false, ["Suspended", "OutOfSync"] => true
+    }
+
+    actual = expected.keys.to_h do |health, sync|
+      row = RubylodeArgocd::ApplicationStatus.rows_from(answer_with(["app", health, sync])).first
+      [[health, sync], row.needs_attention]
+    end
+
+    assert_equal expected, actual
+  end
+
+  test "rows needing attention come first, then every group by name" do
+    rows = RubylodeArgocd::ApplicationStatus.rows_from(answer_with(
+      ["zeta", "Healthy", "Synced"], ["beta", "Degraded", "Synced"], ["alpha", "Healthy", "Synced"], ["gamma", "Healthy", "OutOfSync"]
+    ))
+
+    assert_equal %w[beta gamma alpha zeta], rows.map(&:name)
+  end
+
+  test "the summary says all fine, or how many of the apps need attention" do
+    fine = RubylodeArgocd::ApplicationStatus.rows_from(answer_with(["a", "Healthy", "Synced"], ["b", "Progressing", "Synced"]))
+    mixed = RubylodeArgocd::ApplicationStatus.rows_from(answer_with(["a", "Healthy", "Synced"], ["b", "Degraded", "Synced"], ["c", "Healthy", "OutOfSync"]))
+
+    assert_equal "All 2 apps healthy and synced", RubylodeArgocd::ApplicationStatus.summary_for([report_of(fine)]).text
+    assert_equal "2 of 3 need attention", RubylodeArgocd::ApplicationStatus.summary_for([report_of(mixed)]).text
+    assert_equal "2 of 5 need attention", RubylodeArgocd::ApplicationStatus.summary_for([report_of(mixed), report_of(fine)]).text
+  end
+
+  test "an unavailable instance is not counted, and the summary says so" do
+    mixed = RubylodeArgocd::ApplicationStatus.rows_from(answer_with(["a", "Healthy", "Synced"], ["b", "Degraded", "Synced"]))
+
+    summary = RubylodeArgocd::ApplicationStatus.summary_for([report_of(mixed), report_of([], unavailable: true)])
+
+    assert_equal "1 of 2 need attention. 1 instance is unavailable and its apps are not counted.", summary.text
+  end
+end
