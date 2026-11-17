@@ -4,6 +4,13 @@
 <% @settings.instances.each do |instance| %>
   <div class="rubylode-argocd-instance">
     <h3 class="rubylode-argocd-instance-name"><%= instance.name %></h3>
+    <% report = RubylodeArgocd::ApplicationStatus.report_for(instance, @settings) %>
+    <% if report.unavailable? %>
+      <p class="rubylode-argocd-unavailable"><%= l("rubylode_argocd.status.unavailable") %></p>
+      <% if User.current.admin? %>
+        <p class="rubylode-argocd-hint"><%= l("rubylode_argocd.hints.reason", reason: report.failure_reason) %></p>
+      <% end %>
+    <% else %>
     <table class="list rubylode-argocd-table">
       <thead>
         <tr>
@@ -16,7 +23,7 @@
         </tr>
       </thead>
       <tbody>
-        <% RubylodeArgocd::ApplicationStatus.rows_for(instance, @settings).each do |row| %>
+        <% report.rows.each do |row| %>
           <tr class="rubylode-argocd-row">
             <td class="rubylode-argocd-name"><%= link_to row.name, "#{instance.address}/applications/#{ERB::Util.url_encode(row.namespace)}/#{ERB::Util.url_encode(row.name)}" %></td>
             <td class="rubylode-argocd-project"><%= row.project %></td>
@@ -32,5 +39,6 @@
         <% end %>
       </tbody>
     </table>
+    <% end %>
   </div>
 <% end %>

@@ -64,12 +64,10 @@ class RubylodeArgocdStatusPageTest < Redmine::IntegrationTest
     configure_plugin("instances" => "Production | #{@fake_argocd.url} | REDMINE_SECRET_FOR_TEST")
 
     log_user("admin", "admin")
-    begin
-      get "/status/argocd"
-    rescue RubylodeArgocd::ArgocdClient::Unavailable
-      # Until slice 3 gives the instance a "status unavailable" section, the refusal surfaces as this error.
-    end
+    get "/status/argocd"
 
+    assert_select ".rubylode-argocd-unavailable", text: "Status unavailable"
+    assert_select ".rubylode-argocd-hint", text: /No token for Production/
     assert_empty @fake_argocd.seen_requests
   ensure
     ENV.delete("REDMINE_SECRET_FOR_TEST")

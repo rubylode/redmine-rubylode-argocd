@@ -16,3 +16,15 @@ en:
     settings_page:
       placeholder: The settings for Argo CD instances arrive in a later release.
       instances: Instances
+    status:
+      unavailable: Status unavailable
+    hints:
+      reason: "Why: %{reason}"
+    errors:
+      token_missing: "No token for %{name}"
+      insecure_connection: 'The Argo CD address is not https, so the token is not sent. Use https://, or check "Allow plain http".'
+      redirect_refused: "Argo CD redirected to another address, so the token was not sent there"
+      argocd_status: "Argo CD answered %{status}"
+      answer_unreadable: "Argo CD's answer could not be read"
+      unreachable: "Argo CD could not be reached (%{error_class})"
+      argocd_did_not_answer: Argo CD did not answer

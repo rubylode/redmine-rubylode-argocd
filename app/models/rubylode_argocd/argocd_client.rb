@@ -31,23 +31,42 @@ module RubylodeArgocd
       items.status.operationState.finishedAt items.status.resources
     ].join(",").freeze
 
-    def initialize(instance:, timeout_seconds:)
+    # The token goes only to this instance's address, over https unless the host is loopback or allow_plain_http is
+    # true. A redirect is never followed, so the token cannot reach another host. Every message is scrubbed of the token.
+    def initialize(instance:, timeout_seconds:, allow_plain_http: false)
       @instance = instance
       @timeout_seconds = timeout_seconds
+      @allow_plain_http = allow_plain_http
     end
 
     # The parsed answer of GET /api/v1/applications.
     def applications
-      raise Unavailable, "No token for #{@instance.name}" if @instance.token.empty?
+      raise Unavailable, I18n.t("rubylode_argocd.errors.token_missing", name: @instance.name) if @instance.token.empty?
 
       uri = URI("#{@instance.address}/api/v1/applications?#{URI.encode_www_form(fields: APPLICATION_FIELDS)}")
+      unless SecureTransport.allowed?(uri, allow_plain_http: @allow_plain_http)
+        raise Unavailable, I18n.t("rubylode_argocd.errors.insecure_connection")
+      end
+
       status, body = get(uri)
-      raise Unavailable, "Argo CD answered #{status}" unless status == 200
+      raise Unavailable, I18n.t("rubylode_argocd.errors.redirect_refused") if (300..399).cover?(status)
+      raise Unavailable, I18n.t("rubylode_argocd.errors.argocd_status", status: status) unless status == 200
 
       JSON.parse(body)
+    rescue Unavailable => error
+      raise Unavailable, scrub(error.message)
+    rescue JSON::ParserError
+      raise Unavailable, I18n.t("rubylode_argocd.errors.answer_unreadable")
+    rescue StandardError => error
+      raise Unavailable, scrub(I18n.t("rubylode_argocd.errors.unreachable", error_class: error.class))
     end
 
     private
+
+    def scrub(message)
+      token = @instance.token
+      token.empty? ? message : message.gsub(token, "[filtered]")
+    end
 
     def get(uri)
       request = Net::HTTP::Get.new(uri)
@@ -60,7 +79,7 @@ module RubylodeArgocd
       # Net::HTTP retries a GET once after a read timeout, which doubles the wait and the calls to a stuck server.
       http.max_retries = 0
       response = http.start { |connection| connection.request(request) }
-      [response.code.to_i, response.body]
+      [response.code.to_i, response.body.to_s]
     end
   end
 end
