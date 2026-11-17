@@ -1,0 +1,88 @@
+{
+  "nodes": [
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "Deployment",
+      "namespace": "argocd",
+      "name": "billing-api",
+      "uid": "bdeea7c6-7bf7-7dd3-2c30-72e347f7639e",
+      "health": {
+        "status": "Degraded",
+        "message": "Deployment \"billing-api\" exceeded its progress deadline"
+      },
+      "createdAt": "2026-11-16T09:12:04Z",
+      "resourceVersion": "4211"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "argocd",
+      "name": "billing-api-741212b8be",
+      "uid": "a09ce6e7-a1bb-166e-f3f9-e95563a83f29",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "kind": "Deployment",
+          "namespace": "argocd",
+          "name": "billing-api",
+          "uid": "bdeea7c6-7bf7-7dd3-2c30-72e347f7639e"
+        }
+      ],
+      "health": {
+        "status": "Progressing",
+        "message": "Waiting for rollout to finish: 0 of 1 updated replicas are available..."
+      },
+      "createdAt": "2026-11-16T09:12:04Z",
+      "resourceVersion": "4212"
+    },
+    {
+      "version": "v1",
+      "kind": "Pod",
+      "namespace": "argocd",
+      "name": "billing-api-741212b8be-vxl2q",
+      "uid": "ed7163f0-866c-a1b3-8b31-22b992dc0a34",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "kind": "ReplicaSet",
+          "namespace": "argocd",
+          "name": "billing-api-741212b8be",
+          "uid": "a09ce6e7-a1bb-166e-f3f9-e95563a83f29"
+        }
+      ],
+      "info": [
+        {
+          "name": "Status Reason",
+          "value": "CrashLoopBackOff"
+        },
+        {
+          "name": "Containers",
+          "value": "0/1"
+        }
+      ],
+      "images": [
+        "registry.example.com/acme/billing-api:1.4.3"
+      ],
+      "health": {
+        "status": "Degraded",
+        "message": "back-off 5m0s restarting failed container=app pod=billing-api-741212b8be-vxl2q"
+      },
+      "createdAt": "2026-11-16T09:12:04Z",
+      "resourceVersion": "4230"
+    },
+    {
+      "version": "v1",
+      "kind": "Service",
+      "namespace": "argocd",
+      "name": "billing-api",
+      "uid": "12f88cea-b59e-bf6b-7eb5-f28b15600a8f",
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-10-02T14:40:11Z",
+      "resourceVersion": "1180"
+    }
+  ]
+}

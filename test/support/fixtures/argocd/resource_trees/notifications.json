@@ -1,0 +1,581 @@
+{
+  "nodes": [
+    {
+      "group": "policy",
+      "version": "v1",
+      "kind": "PodDisruptionBudget",
+      "namespace": "storefront",
+      "name": "notifications",
+      "uid": "18ca2cf3-5e3f-5791-7a29-c82a68225e3e",
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-15T06:53:39Z",
+      "resourceVersion": "4066"
+    },
+    {
+      "group": "networking.k8s.io",
+      "version": "v1",
+      "kind": "Ingress",
+      "namespace": "storefront",
+      "name": "notifications-ingress",
+      "uid": "1f3a973e-4b8a-9216-2fa2-d9b794e01519",
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-15T06:53:39Z",
+      "resourceVersion": "7984"
+    },
+    {
+      "group": "batch",
+      "version": "v1",
+      "kind": "Job",
+      "namespace": "storefront",
+      "name": "notifications-job",
+      "uid": "0c582ba1-dd2b-8772-5181-e3d4182bc8c7",
+      "health": {
+        "status": "Healthy",
+        "message": "Job has reached the specified number of completions"
+      },
+      "createdAt": "2026-11-17T05:36:23Z",
+      "resourceVersion": "7506"
+    },
+    {
+      "version": "v1",
+      "kind": "Service",
+      "namespace": "storefront",
+      "name": "notifications",
+      "uid": "57b5c13a-a025-c53f-f080-620ae78040cd",
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-15T06:53:39Z",
+      "resourceVersion": "7132"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "Deployment",
+      "namespace": "storefront",
+      "name": "notifications",
+      "uid": "af72eadb-94b3-3f7b-9ae1-0a625c4f6101",
+      "health": {
+        "status": "Progressing",
+        "message": "Waiting for rollout to finish: 1 old replicas are pending termination..."
+      },
+      "createdAt": "2026-11-15T06:53:39Z",
+      "resourceVersion": "5172"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "Deployment",
+      "namespace": "storefront",
+      "name": "notifications-deployment",
+      "uid": "cd5ee0a7-28d4-65c4-47b7-50d1b5e39768",
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-15T06:55:50Z",
+      "resourceVersion": "2543"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-deployment-9af46d785b",
+      "uid": "c2152a20-9cf8-b5a5-0437-68d470db195b",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications-deployment",
+          "uid": "cd5ee0a7-28d4-65c4-47b7-50d1b5e39768"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-17T05:36:51Z",
+      "resourceVersion": "8095"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-deployment-9a4cf6c5a6",
+      "uid": "a3ef0672-39ed-1931-e2e1-bcfd818633b5",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications-deployment",
+          "uid": "cd5ee0a7-28d4-65c4-47b7-50d1b5e39768"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T22:20:01Z",
+      "resourceVersion": "5053"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-deployment-5ae7dfebec",
+      "uid": "c1cad39a-ae80-e915-9ef0-4d3029d70a90",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications-deployment",
+          "uid": "cd5ee0a7-28d4-65c4-47b7-50d1b5e39768"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T22:50:59Z",
+      "resourceVersion": "3252"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-deployment-6fb106b357",
+      "uid": "befdbce3-9abf-efec-fd5c-f6d303c4d7ea",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications-deployment",
+          "uid": "cd5ee0a7-28d4-65c4-47b7-50d1b5e39768"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T23:02:13Z",
+      "resourceVersion": "1892"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-deployment-6c42565751",
+      "uid": "9d73651e-c476-1465-8877-e79d92b587dc",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications-deployment",
+          "uid": "cd5ee0a7-28d4-65c4-47b7-50d1b5e39768"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T17:45:28Z",
+      "resourceVersion": "5284"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-deployment-f490e16c4c",
+      "uid": "cd3c1164-dd4c-4604-12e9-e201bfa3e434",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications-deployment",
+          "uid": "cd5ee0a7-28d4-65c4-47b7-50d1b5e39768"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T22:52:14Z",
+      "resourceVersion": "3477"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-deployment-3d414d3277",
+      "uid": "2e026a5f-8abc-42a1-d505-08592adfb3e7",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications-deployment",
+          "uid": "cd5ee0a7-28d4-65c4-47b7-50d1b5e39768"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-15T06:55:50Z",
+      "resourceVersion": "5248"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-86e053f592",
+      "uid": "cdd91c46-aadc-f6c8-97f1-51fe66ff27bf",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications",
+          "uid": "af72eadb-94b3-3f7b-9ae1-0a625c4f6101"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T22:50:59Z",
+      "resourceVersion": "1076"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-882ac18245",
+      "uid": "846a0bf6-553d-7e36-a1cb-d5d52cef0c3c",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications",
+          "uid": "af72eadb-94b3-3f7b-9ae1-0a625c4f6101"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T22:52:14Z",
+      "resourceVersion": "7154"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-c37e2e7686",
+      "uid": "9003972d-bc70-7404-1215-4ec9cfbf732c",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications",
+          "uid": "af72eadb-94b3-3f7b-9ae1-0a625c4f6101"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T22:20:01Z",
+      "resourceVersion": "3365"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-6bf8926518",
+      "uid": "986c5e0f-cf56-4ded-4b9d-dfea3b719310",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications",
+          "uid": "af72eadb-94b3-3f7b-9ae1-0a625c4f6101"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T23:02:13Z",
+      "resourceVersion": "1995"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-f3c03f5b85",
+      "uid": "397681c5-1ede-d6cc-4168-7af23ae5174f",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications",
+          "uid": "af72eadb-94b3-3f7b-9ae1-0a625c4f6101"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-15T06:53:39Z",
+      "resourceVersion": "2074"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-ee763daf0b",
+      "uid": "26b7a981-1b93-b5c2-b7a6-f9cf85bc53db",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications",
+          "uid": "af72eadb-94b3-3f7b-9ae1-0a625c4f6101"
+        }
+      ],
+      "health": {
+        "status": "Progressing",
+        "message": "Waiting for replicaset notifications-ee763daf0b to become ready"
+      },
+      "createdAt": "2026-11-17T05:36:51Z",
+      "resourceVersion": "2908"
+    },
+    {
+      "group": "apps",
+      "version": "v1",
+      "kind": "ReplicaSet",
+      "namespace": "storefront",
+      "name": "notifications-152b40645e",
+      "uid": "9a012ac1-3fb5-4741-fc8d-778fe1e19b22",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "Deployment",
+          "namespace": "storefront",
+          "name": "notifications",
+          "uid": "af72eadb-94b3-3f7b-9ae1-0a625c4f6101"
+        }
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T17:45:28Z",
+      "resourceVersion": "2240"
+    },
+    {
+      "version": "v1",
+      "kind": "Pod",
+      "namespace": "storefront",
+      "name": "notifications-job-vsrct",
+      "uid": "da837e32-aea0-8804-ea87-1be4237bd2d7",
+      "parentRefs": [
+        {
+          "group": "batch",
+          "version": "v1",
+          "kind": "Job",
+          "namespace": "storefront",
+          "name": "notifications-job",
+          "uid": "0c582ba1-dd2b-8772-5181-e3d4182bc8c7"
+        }
+      ],
+      "info": [
+        {
+          "name": "Status Reason",
+          "value": "Completed"
+        },
+        {
+          "name": "Containers",
+          "value": "0/1"
+        }
+      ],
+      "images": [
+        "registry.example.com/acme/notifications:1.4.2"
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-17T05:36:23Z",
+      "resourceVersion": "1443"
+    },
+    {
+      "version": "v1",
+      "kind": "Pod",
+      "namespace": "storefront",
+      "name": "notifications-deployment-9af46d785b-hblhl",
+      "uid": "dc0b21b5-a188-3a6d-2eb4-1c7ea963aae3",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "ReplicaSet",
+          "namespace": "storefront",
+          "name": "notifications-deployment-9af46d785b",
+          "uid": "c2152a20-9cf8-b5a5-0437-68d470db195b"
+        }
+      ],
+      "info": [
+        {
+          "name": "Status Reason",
+          "value": "Running"
+        },
+        {
+          "name": "Containers",
+          "value": "1/1"
+        }
+      ],
+      "images": [
+        "registry.example.com/acme/notifications:1.4.2"
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-17T05:36:51Z",
+      "resourceVersion": "7497"
+    },
+    {
+      "version": "v1",
+      "kind": "Pod",
+      "namespace": "storefront",
+      "name": "notifications-6bf8926518-pqrfl",
+      "uid": "c6de6e52-3f19-538e-d287-68329b904da9",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "ReplicaSet",
+          "namespace": "storefront",
+          "name": "notifications-6bf8926518",
+          "uid": "986c5e0f-cf56-4ded-4b9d-dfea3b719310"
+        }
+      ],
+      "info": [
+        {
+          "name": "Status Reason",
+          "value": "Running"
+        },
+        {
+          "name": "Containers",
+          "value": "1/1"
+        }
+      ],
+      "images": [
+        "registry.example.com/acme/notifications:1.4.2"
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-16T23:02:25Z",
+      "resourceVersion": "9328"
+    },
+    {
+      "version": "v1",
+      "kind": "Pod",
+      "namespace": "storefront",
+      "name": "notifications-ee763daf0b-jmfhs",
+      "uid": "613112ed-01e8-2809-8a5d-54f95091da64",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "ReplicaSet",
+          "namespace": "storefront",
+          "name": "notifications-ee763daf0b",
+          "uid": "26b7a981-1b93-b5c2-b7a6-f9cf85bc53db"
+        }
+      ],
+      "info": [
+        {
+          "name": "Status Reason",
+          "value": "Running"
+        },
+        {
+          "name": "Containers",
+          "value": "1/1"
+        }
+      ],
+      "images": [
+        "registry.example.com/acme/notifications:1.4.2"
+      ],
+      "health": {
+        "status": "Healthy"
+      },
+      "createdAt": "2026-11-17T05:36:51Z",
+      "resourceVersion": "5402"
+    },
+    {
+      "version": "v1",
+      "kind": "Pod",
+      "namespace": "storefront",
+      "name": "notifications-ee763daf0b-8pml8",
+      "uid": "47530c20-be2f-1006-15ec-21be289ecb43",
+      "parentRefs": [
+        {
+          "group": "apps",
+          "version": "v1",
+          "kind": "ReplicaSet",
+          "namespace": "storefront",
+          "name": "notifications-ee763daf0b",
+          "uid": "26b7a981-1b93-b5c2-b7a6-f9cf85bc53db"
+        }
+      ],
+      "info": [
+        {
+          "name": "Status Reason",
+          "value": "ContainerCreating"
+        },
+        {
+          "name": "Containers",
+          "value": "0/1"
+        }
+      ],
+      "images": [
+        "registry.example.com/acme/notifications:1.4.2"
+      ],
+      "health": {
+        "status": "Progressing"
+      },
+      "createdAt": "2026-11-17T05:37:22Z",
+      "resourceVersion": "9685"
+    }
+  ]
+}

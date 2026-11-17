@@ -1,0 +1,1812 @@
+{
+  "metadata": {
+    "resourceVersion": "1000"
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "billing-api",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default"
+      },
+      "status": {
+        "health": {
+          "status": "Degraded",
+          "message": "Deployment \"billing-api\" exceeded its progress deadline"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": "38b95bf668bb67815c9dec3e620d791d0ab42bf0"
+        },
+        "operationState": {
+          "finishedAt": "2026-11-16T01:36:17Z"
+        },
+        "resources": [
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "billing-api",
+            "status": "Synced",
+            "syncWave": 3
+          },
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "billing-api-application",
+            "status": "Synced",
+            "syncWave": 3
+          },
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "billing-api-application-2",
+            "status": "Synced",
+            "syncWave": 3
+          },
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "billing-api-application-3",
+            "status": "Synced",
+            "syncWave": 3
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "web",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-1.git",
+            "chart": "chart-1",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "OutOfSync",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-17T04:38:37Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "web",
+            "status": "OutOfSync"
+          },
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "web-configmap",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "web-configmap-6",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "web-configmap-7",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "web-configmap-8",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "web-configmap-9",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "web-configmap-10",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "web-configmap-11",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Secret",
+            "namespace": "argocd",
+            "name": "web-secret",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Secret",
+            "namespace": "argocd",
+            "name": "web-secret-13",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "argocd",
+            "name": "web-service",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "argocd",
+            "name": "web-service-15",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "argocd",
+            "name": "web-service-16",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "argocd",
+            "name": "web-service-17",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "argocd",
+            "name": "web-service-18",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "argocd",
+            "name": "web-service-19",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "argocd",
+            "name": "web-service",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "argocd",
+            "name": "web-service-15",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "argocd",
+            "name": "web-service-16",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "argocd",
+            "name": "web-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "argocd",
+            "name": "web-serviceaccount-21",
+            "hook": true,
+            "requiresPruning": true
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "argocd",
+            "name": "web-service-18",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "argocd",
+            "name": "web-service-19",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "web-customresourcedefinition",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "web-customresourcedefinition-23",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "web-customresourcedefinition-24",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "argocd",
+            "name": "web-service-15",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "argocd",
+            "name": "web-service-16",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "argocd",
+            "name": "web-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "argocd",
+            "name": "web-service-17",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "argocd",
+            "name": "web-service-18",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "argocd",
+            "name": "web-service-19",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "StatefulSet",
+            "namespace": "argocd",
+            "name": "web-service",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "Ingress",
+            "namespace": "argocd",
+            "name": "web-ingress",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "NetworkPolicy",
+            "namespace": "argocd",
+            "name": "web-service",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "NetworkPolicy",
+            "namespace": "argocd",
+            "name": "web-service-16",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "NetworkPolicy",
+            "namespace": "argocd",
+            "name": "web-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "NetworkPolicy",
+            "namespace": "argocd",
+            "name": "web-service-17",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "NetworkPolicy",
+            "namespace": "argocd",
+            "name": "web-service-18",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "NetworkPolicy",
+            "namespace": "argocd",
+            "name": "web-service-19",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "web-service",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "web-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "web-service-19",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "web-service",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "web-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "web-service-19",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "argocd",
+            "name": "web-service",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "argocd",
+            "name": "web-service-15",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "argocd",
+            "name": "web-service-16",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "argocd",
+            "name": "web-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "argocd",
+            "name": "web-serviceaccount-21",
+            "hook": true,
+            "requiresPruning": true
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "argocd",
+            "name": "web-service-18",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "argocd",
+            "name": "web-service-19",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "argocd",
+            "name": "web-service",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "argocd",
+            "name": "web-service-15",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "argocd",
+            "name": "web-service-16",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "argocd",
+            "name": "web-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "argocd",
+            "name": "web-serviceaccount-21",
+            "hook": true,
+            "requiresPruning": true
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "argocd",
+            "name": "web-service-18",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "argocd",
+            "name": "web-service-19",
+            "status": "Synced"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "job-runner",
+        "namespace": "team-apps"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-1.git",
+            "chart": "chart-2",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "path": "deploy/job-runner",
+            "targetRevision": "main"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Missing"
+        },
+        "sync": {
+          "status": "OutOfSync",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-16T22:33:08Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "job-runner",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "argocd",
+            "name": "job-runner-configmap",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "argocd",
+            "name": "job-runner-serviceaccount",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "job-runner-customresourcedefinition",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "argocd",
+            "name": "job-runner-deployment",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "group": "widgets.example.com",
+            "version": "v1alpha1",
+            "kind": "Widget",
+            "namespace": "argocd",
+            "name": "job-runner-widget",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "job-runner-serviceaccount",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "job-runner-serviceaccount",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "argocd",
+            "name": "job-runner-serviceaccount",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "argocd",
+            "name": "job-runner-role",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "argocd",
+            "name": "job-runner-serviceaccount",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "argocd",
+            "name": "job-runner-rolebinding",
+            "status": "OutOfSync",
+            "health": {
+              "status": "Missing"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "search-index",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "path": "deploy/search-index",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-15T17:59:46Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "shop",
+            "name": "search-index",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "shop",
+            "name": "search-index",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "shop",
+            "name": "search-index-deployment",
+            "status": "Synced"
+          },
+          {
+            "group": "batch",
+            "version": "v1",
+            "kind": "Job",
+            "namespace": "shop",
+            "name": "search-index-job",
+            "hook": true,
+            "requiresPruning": true
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "Ingress",
+            "namespace": "shop",
+            "name": "search-index-ingress",
+            "status": "Synced"
+          },
+          {
+            "group": "policy",
+            "version": "v1",
+            "kind": "PodDisruptionBudget",
+            "namespace": "shop",
+            "name": "search-index",
+            "status": "Synced"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "ledger",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-3.git",
+            "chart": "chart-3",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "path": "deploy/ledger",
+            "targetRevision": "main"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-17T05:00:21Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "payments",
+            "name": "ledger",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "payments",
+            "name": "ledger",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "payments",
+            "name": "ledger-service",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "payments",
+            "name": "ledger-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "admissionregistration.k8s.io",
+            "version": "v1",
+            "kind": "ValidatingWebhookConfiguration",
+            "name": "ledger-validatingwebhookconfiguration",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "payments",
+            "name": "ledger",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "IngressClass",
+            "name": "ledger-ingressclass",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "NetworkPolicy",
+            "namespace": "payments",
+            "name": "ledger-networkpolicy",
+            "status": "Synced"
+          },
+          {
+            "group": "policy",
+            "version": "v1",
+            "kind": "PodDisruptionBudget",
+            "namespace": "payments",
+            "name": "ledger",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "ledger-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "ledger-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "payments",
+            "name": "ledger-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "payments",
+            "name": "ledger-serviceaccount",
+            "status": "Synced"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "notifications",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "path": "deploy/notifications",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Progressing",
+          "message": "Waiting for rollout to finish: 1 old replicas are pending termination..."
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-17T05:40:54Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "storefront",
+            "name": "notifications",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "storefront",
+            "name": "notifications",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "storefront",
+            "name": "notifications-deployment",
+            "status": "Synced"
+          },
+          {
+            "group": "batch",
+            "version": "v1",
+            "kind": "Job",
+            "namespace": "storefront",
+            "name": "notifications-job",
+            "hook": true,
+            "requiresPruning": true
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "Ingress",
+            "namespace": "storefront",
+            "name": "notifications-ingress",
+            "status": "Synced"
+          },
+          {
+            "group": "policy",
+            "version": "v1",
+            "kind": "PodDisruptionBudget",
+            "namespace": "storefront",
+            "name": "notifications",
+            "status": "Synced"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "reports",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-4.git",
+            "chart": "chart-4",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-17T05:30:22Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "telemetry",
+            "name": "reports",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "telemetry",
+            "name": "reports",
+            "status": "Synced"
+          },
+          {
+            "group": "apiregistration.k8s.io",
+            "version": "v1",
+            "kind": "APIService",
+            "name": "reports-apiservice",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "telemetry",
+            "name": "reports",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "reports-clusterrole",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "reports-clusterrole-51",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "reports-clusterrolebinding",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "reports-clusterrole",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "telemetry",
+            "name": "reports-rolebinding",
+            "status": "Synced"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "gateway",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-5.git",
+            "chart": "chart-5",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-15T05:18:26Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "data",
+            "name": "gateway",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "data",
+            "name": "gateway-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "gateway-customresourcedefinition",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "data",
+            "name": "gateway",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "data",
+            "name": "gateway-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "gateway-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "gateway-serviceaccount",
+            "status": "Synced"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "inventory",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default"
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": "38b95bf668bb67815c9dec3e620d791d0ab42bf0"
+        },
+        "operationState": {
+          "finishedAt": "2026-11-17T05:30:24Z"
+        },
+        "resources": [
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "inventory",
+            "status": "Synced"
+          },
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "inventory-application",
+            "status": "Synced",
+            "syncWave": 2
+          },
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "inventory-application-59",
+            "status": "Synced",
+            "syncWave": 2
+          },
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "inventory-application-60",
+            "status": "Synced",
+            "syncWave": 1
+          },
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "inventory-application-61",
+            "status": "Synced",
+            "syncWave": 1
+          },
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "inventory-application-62",
+            "status": "Synced",
+            "syncWave": 2
+          },
+          {
+            "group": "argoproj.io",
+            "version": "v1alpha1",
+            "kind": "Application",
+            "namespace": "argocd",
+            "name": "inventory-application-63",
+            "status": "Synced",
+            "syncWave": 1
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "checkout",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "path": "deploy/checkout",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "path": "deploy/checkout",
+            "targetRevision": "main"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-17T03:46:00Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "PersistentVolumeClaim",
+            "namespace": "queue",
+            "name": "checkout",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "queue",
+            "name": "checkout-service",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "queue",
+            "name": "checkout-service",
+            "status": "Synced"
+          },
+          {
+            "group": "batch",
+            "version": "v1",
+            "kind": "CronJob",
+            "namespace": "queue",
+            "name": "checkout-cronjob",
+            "status": "Synced"
+          },
+          {
+            "group": "batch",
+            "version": "v1",
+            "kind": "Job",
+            "namespace": "queue",
+            "name": "checkout-job",
+            "hook": true,
+            "requiresPruning": true
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "Ingress",
+            "namespace": "queue",
+            "name": "checkout-ingress",
+            "status": "Synced"
+          },
+          {
+            "group": "gadgets.example.com",
+            "version": "v1",
+            "kind": "Gadget",
+            "namespace": "queue",
+            "name": "checkout-gadget",
+            "status": "Synced"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "mailer",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default"
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": "38b95bf668bb67815c9dec3e620d791d0ab42bf0"
+        },
+        "operationState": {
+          "finishedAt": "2026-11-17T05:30:24Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "Secret",
+            "namespace": "queue",
+            "name": "mailer",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "queue",
+            "name": "mailer-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "mailer-clusterrole",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "mailer-clusterrole",
+            "status": "Synced"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "scheduler",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-6.git",
+            "chart": "chart-6",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "path": "deploy/scheduler",
+            "targetRevision": "main"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-17T05:46:29Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "ConfigMap",
+            "namespace": "telemetry",
+            "name": "scheduler",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "LimitRange",
+            "namespace": "namespace-7",
+            "name": "scheduler-limitrange",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Namespace",
+            "name": "scheduler-namespace",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ResourceQuota",
+            "namespace": "namespace-7",
+            "name": "scheduler-namespace",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "namespace-8",
+            "name": "scheduler-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "namespace-8",
+            "name": "scheduler-serviceaccount-77",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "namespace-8",
+            "name": "scheduler-serviceaccount-78",
+            "status": "Synced"
+          },
+          {
+            "group": "admissionregistration.k8s.io",
+            "version": "v1",
+            "kind": "ValidatingAdmissionPolicy",
+            "name": "scheduler-validatingadmissionpolicy",
+            "status": "Synced"
+          },
+          {
+            "group": "admissionregistration.k8s.io",
+            "version": "v1",
+            "kind": "ValidatingAdmissionPolicyBinding",
+            "name": "scheduler-validatingadmissionpolicy",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "scheduler-customresourcedefinition",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "scheduler-customresourcedefinition-81",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "scheduler-customresourcedefinition-82",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "scheduler-customresourcedefinition-83",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "scheduler-customresourcedefinition-84",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "scheduler-customresourcedefinition-85",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "scheduler-customresourcedefinition-86",
+            "status": "Synced"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "scheduler-customresourcedefinition-87",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "namespace-8",
+            "name": "scheduler-serviceaccount-77",
+            "status": "Synced"
+          },
+          {
+            "group": "gizmos.example.com",
+            "version": "v2",
+            "kind": "Gizmo",
+            "name": "scheduler-gizmo",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "IngressClass",
+            "name": "scheduler-ingressclass",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "scheduler-clusterrole",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "scheduler-clusterrole-91",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "scheduler-clusterrolebinding",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "scheduler-clusterrolebinding-93",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "scheduler-clusterrole",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "scheduler-clusterrole-91",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "namespace-8",
+            "name": "scheduler-serviceaccount-77",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "namespace-8",
+            "name": "scheduler-serviceaccount-78",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "namespace-7",
+            "name": "scheduler-rolebinding",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "namespace-8",
+            "name": "scheduler-serviceaccount-77",
+            "status": "Synced"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "namespace-8",
+            "name": "scheduler-serviceaccount-78",
+            "status": "Synced"
+          },
+          {
+            "group": "sprockets.example.com",
+            "version": "v1alpha1",
+            "kind": "Sprocket",
+            "name": "scheduler-sprocket",
+            "status": "Synced"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "auth-service",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "default",
+        "sources": [
+          {
+            "repoURL": "https://git.example.com/acme/repository-7.git",
+            "chart": "chart-7",
+            "targetRevision": "main"
+          },
+          {
+            "repoURL": "https://git.example.com/acme/repository-2.git",
+            "targetRevision": "main",
+            "ref": "values"
+          }
+        ]
+      },
+      "status": {
+        "health": {
+          "status": "Healthy"
+        },
+        "sync": {
+          "status": "Synced",
+          "revision": ""
+        },
+        "operationState": {
+          "finishedAt": "2026-11-16T01:36:18Z"
+        },
+        "resources": [
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "namespace-9",
+            "name": "auth-service",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "namespace-9",
+            "name": "auth-service-service",
+            "status": "Synced"
+          },
+          {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "namespace-9",
+            "name": "auth-service-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "namespace-9",
+            "name": "auth-service",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "namespace-9",
+            "name": "auth-service-deployment",
+            "status": "Synced"
+          },
+          {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "namespace-9",
+            "name": "auth-service-deployment-100",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "Ingress",
+            "namespace": "namespace-9",
+            "name": "auth-service-serviceaccount",
+            "status": "Synced"
+          },
+          {
+            "group": "networking.k8s.io",
+            "version": "v1",
+            "kind": "Ingress",
+            "namespace": "namespace-9",
+            "name": "auth-service-ingress",
+            "status": "Synced"
+          },
+          {
+            "group": "policy",
+            "version": "v1",
+            "kind": "PodDisruptionBudget",
+            "namespace": "namespace-9",
+            "name": "auth-service",
+            "status": "Synced"
+          }
+        ]
+      }
+    }
+  ]
+}
