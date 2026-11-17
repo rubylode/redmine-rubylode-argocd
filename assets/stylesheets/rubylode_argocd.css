@@ -1,4 +1,222 @@
 /*
- * Rubylode Argo CD. Every colour and size will be a custom property on .rubylode-argocd, so a theme restyles the
- * page by setting them. The rules arrive with the status table.
+ * Rubylode Argo CD. Every colour and size is a custom property on .rubylode-argocd, so a theme restyles the
+ * block by setting them. Where the theme already has a variable (Redmine 7 ships --oc-* colours) the default follows it.
+ * Green is fine, amber is Progressing or OutOfSync, red is Degraded or Missing.
  */
+.rubylode-argocd {
+  --rubylode-argocd-text: var(--oc-gray-9, #212529);
+  --rubylode-argocd-text-muted: var(--oc-gray-6, #6b7480);
+  --rubylode-argocd-border: var(--oc-gray-3, #dee2e6);
+  --rubylode-argocd-header-background: var(--oc-gray-1, #f1f3f5);
+  --rubylode-argocd-row-hover-background: var(--oc-gray-0, #f8f9fa);
+  --rubylode-argocd-fine-color: var(--oc-green-8, #2b8a3e);
+  --rubylode-argocd-fine-background: #e9f6ec;
+  --rubylode-argocd-attention-color: var(--oc-orange-9, #a15c07);
+  --rubylode-argocd-attention-background: #fff4e0;
+  --rubylode-argocd-broken-color: var(--oc-red-8, #c92a2a);
+  --rubylode-argocd-broken-background: #fdecec;
+  --rubylode-argocd-link-color: var(--oc-blue-8, #1b4f80);
+  --rubylode-argocd-radius: 6px;
+  --rubylode-argocd-gap: 12px;
+  --rubylode-argocd-summary-font-size: 1.05em;
+
+  color: var(--rubylode-argocd-text);
+  margin-bottom: var(--rubylode-argocd-gap);
+}
+
+@media (prefers-color-scheme: dark) {
+  .rubylode-argocd {
+    --rubylode-argocd-text: #e9ecef;
+    --rubylode-argocd-text-muted: #9aa3ad;
+    --rubylode-argocd-border: #3b4148;
+    --rubylode-argocd-header-background: #2a2f35;
+    --rubylode-argocd-row-hover-background: #242a30;
+    --rubylode-argocd-fine-color: #69db7c;
+    --rubylode-argocd-fine-background: #16301d;
+    --rubylode-argocd-attention-color: #ffc078;
+    --rubylode-argocd-attention-background: #3a2b12;
+    --rubylode-argocd-broken-color: #ff8787;
+    --rubylode-argocd-broken-background: #3b1a1a;
+    --rubylode-argocd-link-color: #74c0fc;
+  }
+}
+
+/* A theme that marks its dark mode on the page wins over the system setting. */
+:root[data-theme="dark"] .rubylode-argocd,
+:root[data-color-scheme="dark"] .rubylode-argocd,
+body.dark .rubylode-argocd {
+  --rubylode-argocd-text: #e9ecef;
+  --rubylode-argocd-text-muted: #9aa3ad;
+  --rubylode-argocd-border: #3b4148;
+  --rubylode-argocd-header-background: #2a2f35;
+  --rubylode-argocd-row-hover-background: #242a30;
+  --rubylode-argocd-fine-color: #69db7c;
+  --rubylode-argocd-fine-background: #16301d;
+  --rubylode-argocd-attention-color: #ffc078;
+  --rubylode-argocd-attention-background: #3a2b12;
+  --rubylode-argocd-broken-color: #ff8787;
+  --rubylode-argocd-broken-background: #3b1a1a;
+  --rubylode-argocd-link-color: #74c0fc;
+}
+
+.rubylode-argocd a {
+  color: var(--rubylode-argocd-link-color);
+}
+
+.rubylode-argocd-title {
+  margin: 0 0 6px;
+}
+
+.rubylode-argocd-summary {
+  display: inline-block;
+  margin: 0 0 var(--rubylode-argocd-gap);
+  padding: 4px 12px;
+  border-radius: var(--rubylode-argocd-radius);
+  font-size: var(--rubylode-argocd-summary-font-size);
+  font-weight: 600;
+}
+
+.rubylode-argocd-summary.is-all-fine {
+  color: var(--rubylode-argocd-fine-color);
+  background: var(--rubylode-argocd-fine-background);
+}
+
+.rubylode-argocd-summary.is-need-attention {
+  color: var(--rubylode-argocd-broken-color);
+  background: var(--rubylode-argocd-broken-background);
+}
+
+.rubylode-argocd-summary.is-unavailable {
+  color: var(--rubylode-argocd-attention-color);
+  background: var(--rubylode-argocd-attention-background);
+}
+
+.rubylode-argocd-instance {
+  margin-bottom: var(--rubylode-argocd-gap);
+}
+
+.rubylode-argocd-instance-name {
+  margin: 0 0 6px;
+}
+
+.rubylode-argocd-unavailable {
+  display: inline-block;
+  margin: 0 0 6px;
+  padding: 2px 10px;
+  border-radius: var(--rubylode-argocd-radius);
+  color: var(--rubylode-argocd-attention-color);
+  background: var(--rubylode-argocd-attention-background);
+  font-weight: 600;
+}
+
+.rubylode-argocd-hint,
+.rubylode-argocd-note {
+  margin: 0 0 6px;
+  color: var(--rubylode-argocd-text-muted);
+}
+
+.rubylode-argocd-table {
+  width: 100%;
+  border: 1px solid var(--rubylode-argocd-border);
+  border-collapse: collapse;
+  background: transparent;
+}
+
+.rubylode-argocd .rubylode-argocd-table th,
+.rubylode-argocd .rubylode-argocd-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rubylode-argocd-border);
+  text-align: left;
+  vertical-align: top;
+  color: var(--rubylode-argocd-text);
+}
+
+.rubylode-argocd-table thead th {
+  background: var(--rubylode-argocd-header-background);
+}
+
+.rubylode-argocd-table tbody tr:hover td {
+  background: var(--rubylode-argocd-row-hover-background);
+}
+
+.rubylode-argocd .rubylode-argocd-table td.rubylode-argocd-project,
+.rubylode-argocd .rubylode-argocd-table td.rubylode-argocd-revision {
+  color: var(--rubylode-argocd-text-muted);
+}
+
+.rubylode-argocd-last-sync {
+  white-space: nowrap;
+  color: var(--rubylode-argocd-text-muted);
+}
+
+.rubylode-argocd-revision {
+  font-family: monospace;
+}
+
+/* Health and sync cells: green is fine, amber needs a look, red is broken. */
+.rubylode-argocd .rubylode-argocd-table td.rubylode-argocd-health,
+.rubylode-argocd .rubylode-argocd-table td.rubylode-argocd-sync {
+  white-space: nowrap;
+}
+
+.rubylode-argocd .rubylode-argocd-table td.is-healthy,
+.rubylode-argocd .rubylode-argocd-table td.is-synced {
+  color: var(--rubylode-argocd-fine-color);
+}
+
+.rubylode-argocd .rubylode-argocd-table td.is-progressing,
+.rubylode-argocd .rubylode-argocd-table td.is-out-of-sync {
+  color: var(--rubylode-argocd-attention-color);
+  font-weight: 600;
+}
+
+.rubylode-argocd .rubylode-argocd-table td.is-degraded,
+.rubylode-argocd .rubylode-argocd-table td.is-missing {
+  color: var(--rubylode-argocd-broken-color);
+  font-weight: 600;
+}
+
+.rubylode-argocd .rubylode-argocd-table td.is-unknown,
+.rubylode-argocd .rubylode-argocd-table td.is-suspended {
+  color: var(--rubylode-argocd-text-muted);
+}
+
+/* What is wrong under an app that is not Healthy. */
+.rubylode-argocd-resources {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rubylode-argocd-resource {
+  margin: 2px 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--rubylode-argocd-broken-color);
+  color: var(--rubylode-argocd-text-muted);
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+.rubylode-argocd-table td .rubylode-argocd-note {
+  margin: 4px 0 0;
+  font-size: 0.9em;
+}
+
+/* The small variant, for the sides of other pages. */
+.rubylode-argocd.is-compact .rubylode-argocd-project,
+.rubylode-argocd.is-compact .rubylode-argocd-last-sync,
+.rubylode-argocd.is-compact .rubylode-argocd-revision {
+  display: none;
+}
+
+.rubylode-argocd.is-compact .rubylode-argocd-table th,
+.rubylode-argocd.is-compact .rubylode-argocd-table td {
+  padding: 4px 8px;
+}
+
+@media (max-width: 600px) {
+  .rubylode-argocd-table .rubylode-argocd-project,
+  .rubylode-argocd-table .rubylode-argocd-revision {
+    display: none;
+  }
+}
