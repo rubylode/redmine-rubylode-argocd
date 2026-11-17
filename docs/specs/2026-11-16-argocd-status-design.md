@@ -70,13 +70,25 @@ is planned as a separate project, `redmine-rubylode-k8s`, after this one ships.
 ### Data
 
 - Applications: `GET /api/v1/applications` with `Authorization: Bearer <token>`. Ask only for the fields used
-  (the `fields` query parameter) to keep the answer small: name, namespace, project, `status.health`,
-  `status.sync` (status and revision, or `revisions` for multi-source apps), `status.operationState.finishedAt`,
-  `status.resources`.
-- Failing resources: first from `status.resources` of the same answer (managed resources with their health, no extra
-  call). For an app that is Degraded or Missing, also `GET /api/v1/applications/<name>/resource-tree` (with
+  (the `fields` query parameter) to keep the answer small (about a sixth of the full answer, which carries the sync
+  history): `items.metadata.name`, `items.metadata.namespace`, `items.spec.project`, `items.spec.sources`,
+  `items.status.health`, `items.status.sync.status`, `items.status.sync.revision`,
+  `items.status.operationState.finishedAt`, `items.status.resources`.
+- `fields` is an allowlist on the server, not a free path filter (checked against Argo CD 3.6.1): `status.health`
+  passes only as a whole object (`status.health.status` returns nothing), `status.sync` passes only as `.status` and
+  `.revision`, and `status.sync.revisions` never passes. A path not on the list silently drops out.
+- Revision: a single-source app shows the short `sync.revision`. A multi-source app has no `sync.revision` and its
+  `revisions` cannot be asked for, so it shows the number of sources ("3 sources"), counted from `spec.sources`.
+- Failing resources: on Argo CD 2.x, `status.resources` of the same answer carries each managed resource's health.
+  On 3.x it does not (resource health lives only in the resource tree), so the managed-resource view has no health
+  to show there. For an app that is not Healthy, also `GET /api/v1/applications/<name>/resource-tree` (with
   `appNamespace` when the app is not in the default namespace) to reach pods and their messages. At most 10
   resource-tree calls per instance per refresh; past the cap the app shows the managed-resource view and a note.
+- Errors: a bad or missing token returns 401 with `{"error":"no session information","code":16}`. An app that does
+  not exist, or one the account may not see, returns 403 `permission denied` (code 7): Argo CD does not say which.
+  Argo CD's version is at `GET /api/version` (no `v1`).
+- Timeouts: Ruby's HTTP client retries a GET once after a read timeout by default, which doubles the wait and the calls
+  to a stuck server. The plugin turns that retry off, so "Timeout seconds 3" means three seconds and one call.
 - A row needs attention when health is Degraded, Missing or Unknown, or sync is OutOfSync. Progressing and Suspended
   are shown but do not count. Rows needing attention come first, then by name.
 
@@ -109,8 +121,10 @@ Staging       Status unavailable (administrators see why)
 ```
 
 Health and sync use the same colour language as Beszel's bars: green fine, amber Progressing or OutOfSync, red
-Degraded or Missing. App names link to `<address>/applications/<namespace>/<name>`; confirm the path against the
-development instance (older versions use `/applications/<name>`).
+Degraded or Missing. App names link to `<address>/applications/<namespace>/<name>`. Argo CD 3.6.1's UI router
+accepts both that and the older `/applications/<name>`; the namespaced form is the only one that reaches an app outside
+the default namespace, so it is the one used. (The development address serves only the API, so this was checked in
+Argo CD's UI source rather than in a browser.)
 
 ### Development data
 
