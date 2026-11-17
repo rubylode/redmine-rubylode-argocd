@@ -1,0 +1,7 @@
+en:
+  rubylode_argocd:
+    status_page:
+      title: Argo CD
+    settings_page:
+      placeholder: The settings for Argo CD instances arrive in a later release.
+      instances: Instances
