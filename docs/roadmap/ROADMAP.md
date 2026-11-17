@@ -12,20 +12,25 @@ resources are failing, without a second login and without leaking a token.
    done 2026-11-17, 963232c, f79f3bc: `test/support/fixtures/argocd/`, `test/support/fake_argocd_server.rb`,
    `script/scrub_fixtures.rb`.
 3. Build the plugin from the Rubylode Beszel layout, test first, one slice per session: `01-tracer.md` through
-   `06-settings-page.md` in `docs/plans/argocd-status/`.
+   `06-settings-page.md` in `docs/plans/argocd-status/`. Slice 1 done 2026-11-17, 7e0510e, c1f7283.
 4. Screenshots, README, CHANGELOG, then release 1.0.0 the way Rubylode Beszel does, after creating the remote.
 
 ### Session brief
 
-Next slice: `docs/plans/argocd-status/01-tracer.md`, in a fresh session. The development Argo CD is not needed for
-slices 1 to 6: the fixtures cover every case. Read the spec's Data section first: `fields` is an allowlist,
-multi-source apps show "N sources", on Argo CD 3.x resource health comes only from the resource tree, and the HTTP
-client sets `max_retries = 0`. The fake server's apps: `billing-api` Degraded with a failing pod, `web` OutOfSync,
-`job-runner` Missing in namespace `team-apps`, `notifications` Progressing, ten multi-source.
+Current state: c1f7283, `bin/test` 7 runs, 40 assertions, green on the Redmine 7.0 image (the 5.1 to 7.0 CI matrix
+has not run yet: no remote). `/status/argocd` shows one instance's apps for administrators. Not yet handled: an
+unreachable instance raises on the page, no failure cache, a Cache seconds of 0, transport rules, visibility.
+
+Next slice: `02-failing-resources.md` or `03-several-instances.md` (either order; 3 first fixes the error path), in a
+fresh session. The fixtures cover every case. Read the spec's Data section first: on Argo CD 3.x resource health
+comes only from the resource tree, and `job-runner` (namespace `team-apps`) needs `appNamespace`. The fake server's
+apps: `billing-api` Degraded with a failing pod, `web` OutOfSync, `job-runner` Missing, `notifications` Progressing,
+ten multi-source.
 
 ## Log
 
 - 2026-11-17: fixtures and fake server done; spec corrected against Argo CD 3.6.1.
+- 2026-11-17: slice 1 (tracer) done: skeleton copied from Beszel, one instance's apps on `/status/argocd`.
 
 ## Ideas
 
