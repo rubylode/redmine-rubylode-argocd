@@ -11,29 +11,25 @@ resources are failing, without a second login and without leaking a token.
 2. ~~Capture sample answers from the development Argo CD and build the scrubbed fixtures and the fake server~~
    done 2026-11-17, 963232c, f79f3bc: `test/support/fixtures/argocd/`, `test/support/fake_argocd_server.rb`,
    `script/scrub_fixtures.rb`.
-3. Build the plugin from the Rubylode Beszel layout, test first, one slice per session: `01-tracer.md` through
-   `06-settings-page.md` in `docs/plans/argocd-status/`. Slice 1 done 2026-11-17, 7e0510e, c1f7283.
-4. Screenshots, README, CHANGELOG, then release 1.0.0 on GitHub the way Rubylode Beszel does, after creating the
-   remote.
+3. ~~Build the plugin from the Rubylode Beszel layout, test first: `01-tracer.md` through `06-settings-page.md` in
+   `docs/plans/argocd-status/`~~ done 2026-11-17, 7e0510e through a24e5f2; review fixes 8ba3fbf.
+4. ~~README, CHANGELOG, then release 1.0.0 on GitHub the way Rubylode Beszel does~~ done 2026-11-17, c13df02, tag
+   v1.0.0. Screenshots still to take.
 5. Install the released 1.0.0 on the first production Redmine, from the GitHub release, and check the page there
    against its Argo CD.
-
+6. After 1.0: cache the extracted rows instead of the raw answer (Memcached's 1 MB item limit); optionally pin each
+   token to a host set in the environment; mirror the repository from the household Gitea like the other plugins.
 ### Session brief
 
-Current state: c1f7283, `bin/test` 7 runs, 40 assertions, green on the Redmine 7.0 image (the 5.1 to 7.0 CI matrix
-has not run yet: no remote). `/status/argocd` shows one instance's apps for administrators. Not yet handled: an
-unreachable instance raises on the page, no failure cache, a Cache seconds of 0, transport rules, visibility.
-
-Next slice: `02-failing-resources.md` or `03-several-instances.md` (either order; 3 first fixes the error path), in a
-fresh session. The fixtures cover every case. Read the spec's Data section first: on Argo CD 3.x resource health
-comes only from the resource tree, and `job-runner` (namespace `team-apps`) needs `appNamespace`. The fake server's
-apps: `billing-api` Degraded with a failing pod, `web` OutOfSync, `job-runner` Missing, `notifications` Progressing,
-ten multi-source.
+Current state: 1.0.0, `bin/test` 128 runs, 802 assertions, green on the Redmine 7.0 image; CI runs the 5.1 to 7.0
+matrix on GitHub. Every slice of the plan is built. Next: install from the GitHub release on the first production
+Redmine (item 5), then the after-1.0 items.
 
 ## Log
 
 - 2026-11-17: fixtures and fake server done; spec corrected against Argo CD 3.6.1.
 - 2026-11-17: slice 1 (tracer) done: skeleton copied from Beszel, one instance's apps on `/status/argocd`.
+- 2026-11-17: slices 2 to 6, a security review and its fixes, README and CHANGELOG; released 1.0.0.
 
 ## Ideas
 
