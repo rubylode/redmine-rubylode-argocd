@@ -40,6 +40,9 @@ require "uri"
 # redirect to another host. Each request is recorded (method, path, query, Host and Authorization headers) in
 # `seen_requests`, so tests can assert where a token went.
 #
+# For tests: `applications_answer = {...}` replaces the fixture app list, and `failing_tree_apps = ["name"]` makes the
+# resource-tree call of those apps answer 500.
+#
 # The same controls work over HTTP for the demo: POST /__fail/<server_error|timeout|unauthorized|none>,
 # POST /__redirect_to (body: a base URL, or empty to clear it), POST /__reset, GET /__requests (JSON).
 # Run it on its own:  ruby test/support/fake_argocd_server.rb   (FAKE_ARGOCD_PORT, FAKE_ARGOCD_TOKEN to change them)
@@ -50,7 +53,7 @@ class FakeArgocdServer
   FAILURES = %w[server_error timeout unauthorized].freeze
 
   attr_reader :port
-  attr_accessor :failure, :redirect_to, :timeout_seconds
+  attr_accessor :failure, :redirect_to, :timeout_seconds, :applications_answer, :failing_tree_apps
 
   def initialize(token: TOKEN, port: 0, host: "127.0.0.1", failure: nil, timeout_seconds: 5)
     @token = token
@@ -59,6 +62,7 @@ class FakeArgocdServer
     @failure = failure
     @timeout_seconds = timeout_seconds
     @seen_requests = []
+    @failing_tree_apps = []
     @lock = Mutex.new
   end
 
@@ -86,10 +90,12 @@ class FakeArgocdServer
     @lock.synchronize { @seen_requests.clear }
     self.failure = nil
     self.redirect_to = nil
+    self.applications_answer = nil
+    self.failing_tree_apps = []
   end
 
   def applications
-    read_fixture("applications.json").fetch("items")
+    (applications_answer || read_fixture("applications.json")).fetch("items")
   end
 
   private
@@ -145,8 +151,10 @@ class FakeArgocdServer
   def application_route(route, params)
     case route
     when "/api/v1/applications"
-      ["200 OK", "application/json", File.read(File.join(FIXTURES, "applications.json"))]
+      json("200 OK", applications_answer || read_fixture("applications.json"))
     when %r{\A/api/v1/applications/([^/]+)/resource-tree\z}
+      return json("500 Internal Server Error", "error" => "internal error", "code" => 13) if failing_tree_apps.include?(Regexp.last_match(1))
+
       app = find_application(Regexp.last_match(1), params["appNamespace"])
       app ? json("200 OK", resource_tree(app.dig("metadata", "name"))) : permission_denied
     when %r{\A/api/v1/applications/([^/]+)\z}

@@ -13,6 +13,9 @@ en:
     source_count:
       one: "1 source"
       other: "%{count} sources"
+    failing_resource: "%{kind} %{name} %{health}: %{message}"
+    failing_resource_without_message: "%{kind} %{name} %{health}"
+    detail_skipped: "Detail skipped: too many apps need a look"
     settings_page:
       placeholder: The settings for Argo CD instances arrive in a later release.
       instances: Instances

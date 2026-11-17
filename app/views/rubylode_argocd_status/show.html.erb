@@ -25,7 +25,18 @@
       <tbody>
         <% report.rows.each do |row| %>
           <tr class="rubylode-argocd-row">
-            <td class="rubylode-argocd-name"><%= link_to row.name, "#{instance.address}/applications/#{ERB::Util.url_encode(row.namespace)}/#{ERB::Util.url_encode(row.name)}" %></td>
+            <td class="rubylode-argocd-name"><%= link_to row.name, "#{instance.address}/applications/#{ERB::Util.url_encode(row.namespace)}/#{ERB::Util.url_encode(row.name)}" %>
+              <% if row.failing_resources.any? %>
+                <ul class="rubylode-argocd-resources">
+                  <% row.failing_resources.each do |resource| %>
+                    <li class="rubylode-argocd-resource"><%= resource.message.to_s.empty? ? l("rubylode_argocd.failing_resource_without_message", kind: resource.kind, name: resource.name, health: resource.health) : l("rubylode_argocd.failing_resource", kind: resource.kind, name: resource.name, health: resource.health, message: resource.message) %></li>
+                  <% end %>
+                </ul>
+              <% end %>
+              <% if row.detail_skipped %>
+                <p class="rubylode-argocd-note"><%= l("rubylode_argocd.detail_skipped") %></p>
+              <% end %>
+            </td>
             <td class="rubylode-argocd-project"><%= row.project %></td>
             <td class="rubylode-argocd-health"><%= row.health %></td>
             <td class="rubylode-argocd-sync"><%= row.sync %></td>

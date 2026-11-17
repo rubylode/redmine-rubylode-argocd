@@ -22,7 +22,18 @@ module RubylodeArgocd
 
     # source_count is set only for a multi-source app: its revisions cannot pass the `fields` allowlist, so the row
     # shows how many sources it has instead of a revision.
-    Row = Struct.new(:name, :namespace, :project, :health, :sync, :finished_at, :revision, :source_count, keyword_init: true)
+    # failing_resources lists what is wrong under an app that is not Healthy. detail_skipped is true when the app was
+    # left out of the resource-tree calls because the cap was reached.
+    Row = Struct.new(:name, :namespace, :project, :health, :sync, :finished_at, :revision, :source_count,
+                     :failing_resources, :detail_skipped, keyword_init: true)
+
+    FailingResource = Struct.new(:kind, :namespace, :name, :health, :message, keyword_init: true)
+
+    FAILING_HEALTHS = %w[Degraded Missing Unknown].freeze
+    HEALTHY = "Healthy".freeze
+
+    # Resource-tree calls per instance per refresh. Past it an app shows only its managed resources.
+    RESOURCE_TREE_LIMIT = 10
 
     class << self
       attr_writer :cache
@@ -45,7 +56,7 @@ module RubylodeArgocd
       payload = read_cache(instance) || fetch_and_cache(instance, configuration)
       return Report.new(rows: [], unavailable: true, failure_reason: failure_reason_from(payload)) if payload.key?(FAILURE_KEY)
 
-      Report.new(rows: rows_from(payload["answer"]), unavailable: false, failure_reason: nil)
+      Report.new(rows: rows_from(payload["answer"], payload["resource_trees"]), unavailable: false, failure_reason: nil)
     rescue StandardError => error
       Rails.logger.warn("Rubylode Argo CD: could not build the section for #{instance.name}: #{error.class}")
       Report.new(rows: [], unavailable: true, failure_reason: error.class.name)
@@ -54,7 +65,8 @@ module RubylodeArgocd
     def self.fetch_and_cache(instance, configuration)
       client = ArgocdClient.new(instance: instance, timeout_seconds: configuration.timeout_seconds,
                                 allow_plain_http: configuration.allow_plain_http?)
-      payload = { "answer" => client.applications }
+      answer = client.applications
+      payload = { "answer" => answer, "resource_trees" => resource_trees_for(client, answer) }
       write_cache(instance, payload, configuration.cache_seconds)
       payload
     rescue ArgocdClient::Unavailable => error
@@ -63,6 +75,30 @@ module RubylodeArgocd
       payload
     end
     private_class_method :fetch_and_cache
+
+    # The failing part of the resource tree of each app that is not Healthy, up to the cap and the most broken first.
+    # An app whose call failed is stored as nil: it shows its managed resources and no note.
+    def self.resource_trees_for(client, answer)
+      candidates = Array(answer["items"]).reject { |application| application.dig("status", "health", "status") == HEALTHY }
+      candidates = candidates.sort_by { |application| FAILING_HEALTHS.include?(application.dig("status", "health", "status")) ? 0 : 1 }
+      candidates.first(RESOURCE_TREE_LIMIT).to_h do |application|
+        key = application_key(application)
+        [key, failing_part_of(client.resource_tree(name: application.dig("metadata", "name").to_s, namespace: application.dig("metadata", "namespace").to_s))]
+      rescue ArgocdClient::Unavailable
+        [key, nil]
+      end
+    end
+    private_class_method :resource_trees_for
+
+    def self.failing_part_of(tree)
+      { "nodes" => Array(tree["nodes"]).select { |node| FAILING_HEALTHS.include?(node.dig("health", "status")) } }
+    end
+    private_class_method :failing_part_of
+
+    def self.application_key(application)
+      "#{application.dig("metadata", "namespace")}/#{application.dig("metadata", "name")}"
+    end
+    private_class_method :application_key
 
     # A cache that cannot be read or written is a miss, not an error. A time of 0 means no caching at all.
     def self.read_cache(instance)
@@ -93,25 +129,52 @@ module RubylodeArgocd
       "rubylode_argocd/applications/#{Digest::SHA256.hexdigest("#{instance.address}|#{instance.token_variable}")[0, 16]}"
     end
 
-    def self.rows_from(answer)
-      Array(answer["items"]).map { |application| row_from(application) }
+    # resource_trees maps "namespace/name" to the tree asked for that app (nil when the call failed). Leave it nil when
+    # no trees were asked for at all.
+    def self.rows_from(answer, resource_trees = nil)
+      Array(answer["items"]).map { |application| row_from(application, resource_trees) }
     end
 
-    def self.row_from(application)
+    def self.row_from(application, resource_trees)
       sources = Array(application.dig("spec", "sources"))
       revision = application.dig("status", "sync", "revision").to_s
+      health = application.dig("status", "health", "status").to_s
+      key = application_key(application)
       Row.new(
         name: application.dig("metadata", "name").to_s,
         namespace: application.dig("metadata", "namespace").to_s,
         project: application.dig("spec", "project").to_s,
-        health: application.dig("status", "health", "status").to_s,
+        health: health,
         sync: application.dig("status", "sync", "status").to_s,
         finished_at: time_from(application.dig("status", "operationState", "finishedAt")),
         revision: sources.empty? && !revision.empty? ? revision[0, SHORT_REVISION_LENGTH] : nil,
-        source_count: sources.empty? ? nil : sources.size
+        source_count: sources.empty? ? nil : sources.size,
+        failing_resources: failing_resources_from(application, resource_trees&.dig(key)),
+        detail_skipped: !resource_trees.nil? && health != HEALTHY && !resource_trees.key?(key)
       )
     end
     private_class_method :row_from
+
+    # Managed resources that carry a health (Argo CD 2.x), then the tree's nodes, which win for the same resource
+    # because they carry the message.
+    def self.failing_resources_from(application, tree)
+      found = {}
+      Array(application.dig("status", "resources")).each { |resource| add_failing(found, resource) }
+      Array(tree && tree["nodes"]).each { |node| add_failing(found, node) }
+      found.values
+    end
+    private_class_method :failing_resources_from
+
+    def self.add_failing(found, resource)
+      health = resource.dig("health", "status").to_s
+      return unless FAILING_HEALTHS.include?(health)
+
+      found[[resource["kind"], resource["namespace"], resource["name"]]] = FailingResource.new(
+        kind: resource["kind"].to_s, namespace: resource["namespace"].to_s, name: resource["name"].to_s,
+        health: health, message: resource.dig("health", "message")
+      )
+    end
+    private_class_method :add_failing
 
     def self.time_from(text)
       Time.iso8601(text.to_s)

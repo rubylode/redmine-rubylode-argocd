@@ -51,4 +51,66 @@ class RubylodeArgocdApplicationStatusTest < ActiveSupport::TestCase
     assert_equal 3, job_runner.source_count
     assert_equal "team-apps", job_runner.namespace
   end
+
+  def billing_tree
+    JSON.parse(File.read(File.join(FakeArgocdServer::FIXTURES, "resource_trees", "billing-api.json")))
+  end
+
+  def answer_with_resources(health, resources, name: "ledger")
+    { "items" => [{ "metadata" => { "name" => name, "namespace" => "argocd" }, "spec" => { "project" => "default" },
+                    "status" => { "health" => { "status" => health }, "sync" => { "status" => "Synced" }, "resources" => resources } }] }
+  end
+
+  test "failing managed resources come from the resources of the applications answer" do
+    answer = answer_with_resources("Degraded", [
+      { "kind" => "Deployment", "name" => "ledger", "health" => { "status" => "Degraded", "message" => "no minimum availability" } },
+      { "kind" => "Service", "name" => "ledger", "health" => { "status" => "Healthy" } },
+      { "kind" => "ConfigMap", "name" => "ledger-settings", "status" => "OutOfSync" },
+      { "kind" => "Secret", "name" => "ledger-keys", "health" => { "status" => "Missing" } }
+    ])
+
+    failing = RubylodeArgocd::ApplicationStatus.rows_from(answer).first.failing_resources
+
+    assert_equal [["Deployment", "ledger", "Degraded", "no minimum availability"], ["Secret", "ledger-keys", "Missing", nil]],
+                 failing.map { |resource| [resource.kind, resource.name, resource.health, resource.message] }
+  end
+
+  test "the resource tree of a Degraded app adds the pod and its message" do
+    answer = answer_with_resources("Degraded", [], name: "billing-api")
+
+    failing = RubylodeArgocd::ApplicationStatus.rows_from(answer, "argocd/billing-api" => billing_tree).first.failing_resources
+
+    assert_equal [["Deployment", "billing-api", "Degraded"], ["Pod", "billing-api-741212b8be-vxl2q", "Degraded"]],
+                 failing.map { |resource| [resource.kind, resource.name, resource.health] }
+    assert_equal "back-off 5m0s restarting failed container=app pod=billing-api-741212b8be-vxl2q", failing.last.message
+  end
+
+  test "a resource in both the managed list and the tree is listed once, with the tree's message" do
+    answer = answer_with_resources("Degraded", [{ "kind" => "Deployment", "namespace" => "argocd", "name" => "billing-api",
+                                                  "health" => { "status" => "Degraded" } }], name: "billing-api")
+
+    failing = RubylodeArgocd::ApplicationStatus.rows_from(answer, "argocd/billing-api" => billing_tree).first.failing_resources
+
+    assert_equal 2, failing.size
+    assert_equal "Deployment \"billing-api\" exceeded its progress deadline", failing.first.message
+  end
+
+  test "a Healthy app lists no failing resources and is never marked as skipped" do
+    row = RubylodeArgocd::ApplicationStatus.rows_from(answer_with_resources("Healthy", []), {}).first
+
+    assert_empty row.failing_resources
+    refute row.detail_skipped
+  end
+
+  test "an app that is not Healthy and has no tree among the trees asked for is marked as skipped" do
+    row = RubylodeArgocd::ApplicationStatus.rows_from(answer_with_resources("Degraded", []), {}).first
+
+    assert row.detail_skipped
+  end
+
+  test "an app whose tree call failed is not marked as skipped" do
+    row = RubylodeArgocd::ApplicationStatus.rows_from(answer_with_resources("Degraded", []), "argocd/ledger" => nil).first
+
+    refute row.detail_skipped
+  end
 end

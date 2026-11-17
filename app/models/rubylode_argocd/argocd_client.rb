@@ -23,6 +23,8 @@ module RubylodeArgocd
   class ArgocdClient
     class Unavailable < StandardError; end
 
+    DEFAULT_APP_NAMESPACE = "argocd".freeze
+
     # `fields` is an allowlist on the server: a path not on it drops out silently. `status.health` passes only whole,
     # and `status.sync.revisions` never passes, which is why a multi-source app shows its source count.
     APPLICATION_FIELDS = %w[
@@ -41,9 +43,22 @@ module RubylodeArgocd
 
     # The parsed answer of GET /api/v1/applications.
     def applications
+      get_json("/api/v1/applications?#{URI.encode_www_form(fields: APPLICATION_FIELDS)}")
+    end
+
+    # The parsed answer of GET /api/v1/applications/<name>/resource-tree. An app outside Argo CD's own namespace is found
+    # only when that namespace is named.
+    def resource_tree(name:, namespace:)
+      query = namespace == DEFAULT_APP_NAMESPACE ? "" : "?#{URI.encode_www_form(appNamespace: namespace)}"
+      get_json("/api/v1/applications/#{ERB::Util.url_encode(name)}/resource-tree#{query}")
+    end
+
+    private
+
+    def get_json(path_and_query)
       raise Unavailable, I18n.t("rubylode_argocd.errors.token_missing", name: @instance.name) if @instance.token.empty?
 
-      uri = URI("#{@instance.address}/api/v1/applications?#{URI.encode_www_form(fields: APPLICATION_FIELDS)}")
+      uri = URI("#{@instance.address}#{path_and_query}")
       unless SecureTransport.allowed?(uri, allow_plain_http: @allow_plain_http)
         raise Unavailable, I18n.t("rubylode_argocd.errors.insecure_connection")
       end
@@ -60,8 +75,6 @@ module RubylodeArgocd
     rescue StandardError => error
       raise Unavailable, scrub(I18n.t("rubylode_argocd.errors.unreachable", error_class: error.class))
     end
-
-    private
 
     def scrub(message)
       token = @instance.token
