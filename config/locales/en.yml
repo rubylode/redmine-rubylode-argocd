@@ -2,6 +2,17 @@ en:
   rubylode_argocd:
     status_page:
       title: Argo CD
+    columns:
+      app: App
+      project: Project
+      health: Health
+      sync: Sync
+      last_sync: Last sync
+      revision: Revision
+    time_ago: "%{time} ago"
+    source_count:
+      one: "1 source"
+      other: "%{count} sources"
     settings_page:
       placeholder: The settings for Argo CD instances arrive in a later release.
       instances: Instances

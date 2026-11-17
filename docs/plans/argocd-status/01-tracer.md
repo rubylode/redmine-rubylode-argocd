@@ -17,7 +17,8 @@ The suite runs green with one smoke test that the plugin is registered.
 ## Tests, in order (red, then green, one at a time)
 
 1. Seam 2: the status model turns the applications fixture into rows with name, namespace, project, health, sync,
-   finished-at time and a seven-character revision; a multi-source app shows its first revision.
+   finished-at time and a seven-character revision; a multi-source app shows its source count
+   instead ("3 sources"; its revisions cannot pass the `fields` allowlist, see the spec).
 2. Seam 1: an administrator gets the page with one row per app in the fixture; names link to the UI path confirmed
    in slice 0.
 3. Seam 1: the request to the fake server carries `Authorization: Bearer <token>` read from the variable named in the

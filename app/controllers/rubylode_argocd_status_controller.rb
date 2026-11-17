@@ -19,5 +19,6 @@ class RubylodeArgocdStatusController < ApplicationController
   before_action :require_admin
 
   def show
+    @settings = RubylodeArgocd::Settings.current
   end
 end

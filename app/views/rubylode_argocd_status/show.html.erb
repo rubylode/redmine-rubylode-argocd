@@ -1,3 +1,36 @@
 <% html_title l("rubylode_argocd.status_page.title") %>
 <% content_for :header_tags, stylesheet_link_tag("rubylode_argocd", plugin: "redmine_rubylode_argocd") %>
 <h2><%= l("rubylode_argocd.status_page.title") %></h2>
+<% @settings.instances.each do |instance| %>
+  <div class="rubylode-argocd-instance">
+    <h3 class="rubylode-argocd-instance-name"><%= instance.name %></h3>
+    <table class="list rubylode-argocd-table">
+      <thead>
+        <tr>
+          <th><%= l("rubylode_argocd.columns.app") %></th>
+          <th><%= l("rubylode_argocd.columns.project") %></th>
+          <th><%= l("rubylode_argocd.columns.health") %></th>
+          <th><%= l("rubylode_argocd.columns.sync") %></th>
+          <th><%= l("rubylode_argocd.columns.last_sync") %></th>
+          <th><%= l("rubylode_argocd.columns.revision") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% RubylodeArgocd::ApplicationStatus.rows_for(instance, @settings).each do |row| %>
+          <tr class="rubylode-argocd-row">
+            <td class="rubylode-argocd-name"><%= link_to row.name, "#{instance.address}/applications/#{ERB::Util.url_encode(row.namespace)}/#{ERB::Util.url_encode(row.name)}" %></td>
+            <td class="rubylode-argocd-project"><%= row.project %></td>
+            <td class="rubylode-argocd-health"><%= row.health %></td>
+            <td class="rubylode-argocd-sync"><%= row.sync %></td>
+            <td class="rubylode-argocd-last-sync">
+              <% if row.finished_at %>
+                <span title="<%= format_time(row.finished_at) %>"><%= l("rubylode_argocd.time_ago", time: time_ago_in_words(row.finished_at)) %></span>
+              <% end %>
+            </td>
+            <td class="rubylode-argocd-revision"><%= row.source_count ? l("rubylode_argocd.source_count", count: row.source_count) : row.revision %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
