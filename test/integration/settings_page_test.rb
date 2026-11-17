@@ -150,4 +150,18 @@ class RubylodeArgocd::SettingsPageTest < Redmine::IntegrationTest
   test "the validation patch is applied to the settings controller" do
     assert SettingsController.include?(RubylodeArgocd::SettingsControllerPatch)
   end
+
+  test "an address with credentials, a query or a fragment is refused with its line number" do
+    log_user("admin", "admin")
+    assert_refused({ "instances" => "Production | https://user:pass@argocd.example.com | #{SET_VARIABLE}" }, /Instances, line 1: .*without a user name, a query or a fragment/)
+    assert_refused({ "instances" => "# note\nProduction | https://argocd.example.com?x=1 | #{SET_VARIABLE}" }, /Instances, line 2: .*without a user name, a query or a fragment/)
+    assert_refused({ "instances" => "Production | https://argocd.example.com/#top | #{SET_VARIABLE}" }, /Instances, line 1: .*without a user name, a query or a fragment/)
+  end
+
+  test "only the value the checkbox posts, 1, turns Allow plain http on" do
+    log_user("admin", "admin")
+    assert_refused({ "instances" => "Production | http://argocd.svc | #{SET_VARIABLE}", "allow_plain_http" => "true" }, /Allow plain http/)
+    assert_equal false, RubylodeArgocd::Settings.new("allow_plain_http" => "true").allow_plain_http?
+    assert_equal true, RubylodeArgocd::Settings.new("allow_plain_http" => "1").allow_plain_http?
+  end
 end

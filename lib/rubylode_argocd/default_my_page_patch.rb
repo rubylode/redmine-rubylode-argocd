@@ -23,7 +23,7 @@ module RubylodeArgocd
 
     def default_layout
       layout = super
-      layout["top"] = [BLOCK] + layout["top"].to_a if Settings.current.show_on_my_page?
+      layout["top"] = [BLOCK] + layout["top"].to_a if RubylodeArgocd::Settings.current.show_on_my_page?
       layout
     end
   end

@@ -36,22 +36,22 @@ module RubylodeArgocd
 
         RubylodeStatus::Registry.register(
           key: KEY,
-          title: -> { Settings.current.block_title },
+          title: -> { RubylodeArgocd::Settings.current.block_title },
           path: PAGE_PATH,
           data: -> { data },
           partial: PARTIAL,
-          visibility: -> { Settings.current.visibility }
+          visibility: -> { RubylodeArgocd::Settings.current.visibility }
         )
         true
       end
 
-      def data(settings = Settings.current)
+      def data(settings = RubylodeArgocd::Settings.current)
         instances = settings.instances
         return { state: "unknown", summary: I18n.t("rubylode_argocd.status.not_set_up"), items: [] } if instances.empty?
 
-        reports = instances.to_h { |instance| [instance, ApplicationStatus.report_for(instance, settings)] }
+        reports = instances.to_h { |instance| [instance, RubylodeArgocd::ApplicationStatus.report_for(instance, settings)] }
         items = reports.map { |instance, report| item_for(instance, report) }.sort_by { |item| WORSE_FIRST.index(item[:state]) }
-        { state: block_state(items), summary: ApplicationStatus.summary_for(reports.values).text, items: items }
+        { state: block_state(items), summary: RubylodeArgocd::ApplicationStatus.summary_for(reports.values).text, items: items }
       end
 
       private

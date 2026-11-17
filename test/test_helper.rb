@@ -61,10 +61,10 @@ module RubylodeArgocdTestHelpers
   # Minitest 6 ships without stubs, so a singleton method is swapped by hand for the length of the block.
   def replacing_method(target, name, replacement)
     original = target.method(name)
-    target.define_singleton_method(name) { |*arguments, &block| replacement.call(*arguments, &block) }
+    target.define_singleton_method(name) { |*arguments, **keywords, &block| replacement.call(*arguments, **keywords, &block) }
     yield
   ensure
-    target.define_singleton_method(name) { |*arguments, &block| original.call(*arguments, &block) }
+    target.define_singleton_method(name) { |*arguments, **keywords, &block| original.call(*arguments, **keywords, &block) }
   end
 
   # Stands in for the Status plugin's registry for the length of the block, and records what is registered.

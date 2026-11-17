@@ -14,3 +14,4 @@ First release. It shows the health and sync state of the applications in one or 
 - The block as a wiki macro (`{{argocd_status}}`), a page (`/status/argocd`), a My page block, a partial, placements on the welcome page, the default My page, project Overview pages and pages matching a path list, a top menu link, and a widget on the Rubylode Status page when that plugin is installed.
 - A settings page that checks each line and shows whether each token variable is set.
 - Tokens are read from `ARGOCD_...` environment variables only, sent only to their own instance, over https unless the host is loopback or "Allow plain http" is checked, and never followed through a redirect.
+- A refresh of one instance stops asking for resource details after twice its Timeout seconds, and an answer over 10 MB is refused with "Argo CD's answer was too large". An address with a user name, a query or a fragment is refused on the settings page.

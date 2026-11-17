@@ -110,4 +110,18 @@ class RubylodeArgocdFailingResourcesTest < Redmine::IntegrationTest
     assert_equal first_count, @fake_argocd.seen_requests.size
     assert_select "li.rubylode-argocd-resource", text: /billing-api-741212b8be-vxl2q/
   end
+
+  test "slow tree calls stop at twice the timeout, and the apps left over say the detail was skipped" do
+    @fake_argocd.applications_answer = degraded_applications(10)
+    @fake_argocd.slow_tree_seconds = 0.6
+    configure_plugin("instances" => "Production | #{@fake_argocd.url} | #{TOKEN_VARIABLE}", "timeout_seconds" => "1")
+
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_response :success
+    assert tree_requests.size < 10, "expected fewer than 10 tree calls, got #{tree_requests.size}"
+    assert_select "tbody tr.rubylode-argocd-row", 10
+    assert_select ".rubylode-argocd-note", text: "Detail skipped: too many apps need a look", count: 10 - tree_requests.size
+  end
 end

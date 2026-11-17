@@ -8,7 +8,8 @@
   <% @rubylode_argocd_rendered = true %>
   <% stylesheet = stylesheet_link_tag("rubylode_argocd", plugin: "redmine_rubylode_argocd") %>
   <%# A full page takes the stylesheet in its head; an AJAX render (the wiki preview) has no head, so it carries the link itself. %>
-  <% if request.xhr? %><%= stylesheet %><% else %><% content_for :header_tags, stylesheet %><% end %>
+  <%# With no request at all (the macro in a notification email) there is no head to put it in, and no stylesheet is wanted. %>
+  <% if request&.xhr? %><%= stylesheet %><% elsif request %><% content_for :header_tags, stylesheet %><% end %>
   <% compact = local_assigns.fetch(:compact, false) %>
   <% block_title = local_assigns[:title].presence || configuration.block_title %>
   <% on_status_page = local_assigns.key?(:widget) %>

@@ -82,6 +82,7 @@ module RubylodeArgocd
     def address_problems(address)
       uri = URI.parse(address)
       return [t("address_invalid")] unless %w[http https].include?(uri.scheme) && !uri.host.to_s.empty?
+      return [t("address_has_extras")] if uri.userinfo || uri.query || uri.fragment
       return [t("plain_http_refused")] unless SecureTransport.allowed?(uri, allow_plain_http: allow_plain_http?)
 
       []

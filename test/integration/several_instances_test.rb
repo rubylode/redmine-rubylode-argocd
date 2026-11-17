@@ -211,4 +211,69 @@ class RubylodeArgocdSeveralInstancesTest < Redmine::IntegrationTest
   ensure
     ENV.delete("REDMINE_SECRET_FOR_TEST")
   end
+
+  test "an answer bigger than 10 MB is refused, and an administrator is told why" do
+    @first.oversized_body_bytes = 11 * 1024 * 1024
+
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_response :success
+    assert_select ".rubylode-argocd-instance:nth-of-type(1) .rubylode-argocd-unavailable", text: "Status unavailable"
+    assert_select ".rubylode-argocd-hint", text: /Argo CD's answer was too large/
+    assert_select ".rubylode-argocd-instance:nth-of-type(2) tbody tr", 13
+  end
+
+  test "an answer that is not what Argo CD sends is fetched once across two page loads" do
+    @first.applications_body = "null"
+    @second.applications_body = "[1, \"two\"]"
+
+    log_user("admin", "admin")
+    2.times { get "/status/argocd" }
+
+    assert_response :success
+    assert_equal 1, applications_requests(@first).size
+    assert_equal 1, applications_requests(@second).size
+  end
+
+  test "an unexpected error while fetching is cached as a failure and logs only its class" do
+    calls = 0
+    exploding = Object.new
+    exploding.define_singleton_method(:applications) do
+      calls += 1
+      raise RuntimeError, "secret detail of the failure"
+    end
+    log = nil
+
+    replacing_method(RubylodeArgocd::ArgocdClient, :new, ->(**) { exploding }) do
+      log = captured_log do
+        log_user("admin", "admin")
+        2.times { get "/status/argocd" }
+      end
+    end
+
+    assert_response :success
+    assert_select ".rubylode-argocd-unavailable", 2
+    assert_equal 2, calls, "one call for each of the two instances, none on the second load"
+    assert_includes log, "RuntimeError"
+    refute_includes log, "secret detail"
+  end
+
+  test "an IPv6 address in brackets is reached" do
+    ipv6_server = begin
+      FakeArgocdServer.new(host: "::1").start
+    rescue SystemCallError, SocketError => error
+      skip "::1 cannot be bound in this container (#{error.class})"
+    end
+    ENV[FIRST_VARIABLE] = FakeArgocdServer::TOKEN
+    configure_plugin("instances" => "Production | #{ipv6_server.url} | #{FIRST_VARIABLE}", "cache_seconds" => "60")
+
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_select "tbody tr", 13
+    assert_equal ["[::1]:#{ipv6_server.port}"], ipv6_server.seen_requests.map { |seen| seen[:host] }.uniq
+  ensure
+    ipv6_server&.stop
+  end
 end

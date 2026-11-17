@@ -24,6 +24,8 @@ module RubylodeArgocd
     class Unavailable < StandardError; end
 
     DEFAULT_APP_NAMESPACE = "argocd".freeze
+    # The most of an answer that is read. Past it the call gives up.
+    MAX_BODY_BYTES = 10 * 1024 * 1024
 
     # `fields` is an allowlist on the server: a path not on it drops out silently. `status.health` passes only whole,
     # and `status.sync.revisions` never passes, which is why a multi-source app shows its source count.
@@ -85,14 +87,27 @@ module RubylodeArgocd
       request = Net::HTTP::Get.new(uri)
       request["Authorization"] = "Bearer #{@instance.token}"
       request["Accept"] = "application/json"
-      http = Net::HTTP.new(uri.host, uri.port)
+      # hostname has no brackets round an IPv6 address; nil, nil keeps proxy settings in the environment from being used.
+      http = Net::HTTP.new(uri.hostname, uri.port, nil, nil)
       http.use_ssl = uri.scheme == "https"
       http.open_timeout = @timeout_seconds
       http.read_timeout = @timeout_seconds
       # Net::HTTP retries a GET once after a read timeout, which doubles the wait and the calls to a stuck server.
       http.max_retries = 0
-      response = http.start { |connection| connection.request(request) }
-      [response.code.to_i, response.body.to_s]
+      answer = nil
+      http.start do |connection|
+        connection.request(request) { |response| answer = [response.code.to_i, read_limited_body(response)] }
+      end
+      answer
+    end
+
+    def read_limited_body(response)
+      body = +""
+      response.read_body do |chunk|
+        body << chunk
+        raise Unavailable, I18n.t("rubylode_argocd.errors.answer_too_large") if body.bytesize > MAX_BODY_BYTES
+      end
+      body
     end
   end
 end

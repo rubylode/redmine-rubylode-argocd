@@ -116,7 +116,7 @@ module RubylodeArgocd
     end
 
     def allow_plain_http?
-      %w[1 true].include?(@values["allow_plain_http"].to_s)
+      @values["allow_plain_http"].to_s == "1"
     end
 
     def cache_seconds

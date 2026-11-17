@@ -21,14 +21,14 @@ module RubylodeArgocd
   # also forgets what was cached, so the next page load asks Argo CD again.
   module SettingsControllerPatch
     def plugin
-      return super unless request.post? && params[:id].to_s == Settings::PLUGIN_ID.to_s
+      return super unless request.post? && params[:id].to_s == RubylodeArgocd::Settings::PLUGIN_ID.to_s
 
       submitted = params[:settings] ? params[:settings].permit!.to_h : {}
       errors = RubylodeArgocd::SettingsValidator.errors_for(submitted)
       if errors.empty?
-        before = Settings.current.instances
+        before = RubylodeArgocd::Settings.current.instances
         result = super
-        ApplicationStatus.forget(before + Settings.current.instances)
+        RubylodeArgocd::ApplicationStatus.forget(before + RubylodeArgocd::Settings.current.instances)
         return result
       end
 

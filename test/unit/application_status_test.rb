@@ -113,6 +113,27 @@ class RubylodeArgocdApplicationStatusTest < ActiveSupport::TestCase
 
     refute row.detail_skipped
   end
+
+  test "an answer that is a list, or whose items are not a list, has no rows" do
+    assert_equal [], RubylodeArgocd::ApplicationStatus.rows_from([{ "metadata" => { "name" => "a" } }])
+    assert_equal [], RubylodeArgocd::ApplicationStatus.rows_from({ "items" => { "metadata" => { "name" => "a" } } })
+    assert_equal [], RubylodeArgocd::ApplicationStatus.rows_from(nil)
+  end
+
+  test "an item that is not an object is skipped and the others stay" do
+    rows = RubylodeArgocd::ApplicationStatus.rows_from({ "items" => ["text", nil, 7, { "metadata" => { "name" => "alpha", "namespace" => "argocd" } }] })
+
+    assert_equal %w[alpha], rows.map(&:name)
+  end
+
+  test "a resource or a tree node that is not an object is skipped and the others stay" do
+    answer = answer_with_resources("Degraded", ["text", { "kind" => "Pod", "name" => "web", "health" => { "status" => "Degraded" } }])
+    tree = { "nodes" => ["text", nil, { "kind" => "Pod", "name" => "web-2", "health" => { "status" => "Missing" } }] }
+    rows = RubylodeArgocd::ApplicationStatus.rows_from(answer, { "argocd/ledger" => tree })
+
+    assert_equal %w[web web-2], rows.first.failing_resources.map(&:name)
+    assert_equal %w[web], RubylodeArgocd::ApplicationStatus.rows_from(answer, { "argocd/ledger" => { "nodes" => { "kind" => "Pod" } } }).first.failing_resources.map(&:name)
+  end
 end
 
 class RubylodeArgocdAttentionTest < ActiveSupport::TestCase

@@ -41,7 +41,9 @@ require "uri"
 # `seen_requests`, so tests can assert where a token went.
 #
 # For tests: `applications_answer = {...}` replaces the fixture app list, and `failing_tree_apps = ["name"]` makes the
-# resource-tree call of those apps answer 500.
+# resource-tree call of those apps answer 500. `applications_body = "null"` serves that text as the app list as it is,
+# `slow_tree_seconds = 0.6` makes every resource-tree call wait that long, and `oversized_body_bytes = n` makes the app
+# list answer with a body of n bytes.
 #
 # The same controls work over HTTP for the demo: POST /__fail/<server_error|timeout|unauthorized|none>,
 # POST /__redirect_to (body: a base URL, or empty to clear it), POST /__reset, GET /__requests (JSON).
@@ -53,7 +55,8 @@ class FakeArgocdServer
   FAILURES = %w[server_error timeout unauthorized].freeze
 
   attr_reader :port
-  attr_accessor :failure, :redirect_to, :timeout_seconds, :applications_answer, :failing_tree_apps
+  attr_accessor :failure, :redirect_to, :timeout_seconds, :applications_answer, :failing_tree_apps,
+                :applications_body, :slow_tree_seconds, :oversized_body_bytes
 
   def initialize(token: TOKEN, port: 0, host: "127.0.0.1", failure: nil, timeout_seconds: 5)
     @token = token
@@ -63,6 +66,7 @@ class FakeArgocdServer
     @timeout_seconds = timeout_seconds
     @seen_requests = []
     @failing_tree_apps = []
+    @slow_tree_seconds = 0
     @lock = Mutex.new
   end
 
@@ -79,7 +83,8 @@ class FakeArgocdServer
   end
 
   def url
-    "http://#{@host}:#{@port}"
+    host = @host.include?(":") ? "[#{@host}]" : @host
+    "http://#{host}:#{@port}"
   end
 
   def seen_requests
@@ -92,6 +97,9 @@ class FakeArgocdServer
     self.redirect_to = nil
     self.applications_answer = nil
     self.failing_tree_apps = []
+    self.applications_body = nil
+    self.slow_tree_seconds = 0
+    self.oversized_body_bytes = nil
   end
 
   def applications
@@ -151,8 +159,12 @@ class FakeArgocdServer
   def application_route(route, params)
     case route
     when "/api/v1/applications"
+      return ["200 OK", "application/json", "x" * oversized_body_bytes] if oversized_body_bytes
+      return ["200 OK", "application/json", applications_body] if applications_body
+
       json("200 OK", applications_answer || read_fixture("applications.json"))
     when %r{\A/api/v1/applications/([^/]+)/resource-tree\z}
+      sleep slow_tree_seconds if slow_tree_seconds.positive?
       return json("500 Internal Server Error", "error" => "internal error", "code" => 13) if failing_tree_apps.include?(Regexp.last_match(1))
 
       app = find_application(Regexp.last_match(1), params["appNamespace"])

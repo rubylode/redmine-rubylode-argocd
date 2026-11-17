@@ -34,6 +34,8 @@ module RubylodeArgocd
 
     # Resource-tree calls per instance per refresh. Past it an app shows only its managed resources.
     RESOURCE_TREE_LIMIT = 10
+    # One refresh of an instance may take this many times its Timeout seconds. Past it no more tree calls are made.
+    DEADLINE_TIMEOUT_MULTIPLE = 2
 
     class << self
       attr_writer :cache
@@ -113,11 +115,13 @@ module RubylodeArgocd
       client = ArgocdClient.new(instance: instance, timeout_seconds: configuration.timeout_seconds,
                                 allow_plain_http: configuration.allow_plain_http?)
       answer = client.applications
-      payload = { "answer" => answer, "resource_trees" => resource_trees_for(client, answer) }
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + (configuration.timeout_seconds * DEADLINE_TIMEOUT_MULTIPLE)
+      payload = { "answer" => answer, "resource_trees" => resource_trees_for(client, answer, deadline) }
       write_cache(instance, payload, configuration.cache_seconds)
       payload
-    rescue ArgocdClient::Unavailable => error
-      payload = { FAILURE_KEY => error.message }
+    rescue StandardError => error
+      Rails.logger.warn("Rubylode Argo CD: could not fetch #{instance.name}: #{error.class}")
+      payload = { FAILURE_KEY => error.is_a?(ArgocdClient::Unavailable) ? error.message : error.class.name }
       write_cache(instance, payload, configuration.failure_cache_seconds)
       payload
     end
@@ -125,22 +129,33 @@ module RubylodeArgocd
 
     # The failing part of the resource tree of each app that is not Healthy, up to the cap and the most broken first.
     # An app whose call failed is stored as nil: it shows its managed resources and no note.
-    def self.resource_trees_for(client, answer)
-      candidates = Array(answer["items"]).reject { |application| application.dig("status", "health", "status") == HEALTHY }
+    def self.resource_trees_for(client, answer, deadline)
+      candidates = hashes_in(answer, "items").reject { |application| application.dig("status", "health", "status") == HEALTHY }
       candidates = candidates.sort_by { |application| FAILING_HEALTHS.include?(application.dig("status", "health", "status")) ? 0 : 1 }
-      candidates.first(RESOURCE_TREE_LIMIT).to_h do |application|
+      candidates.first(RESOURCE_TREE_LIMIT).each_with_object({}) do |application, trees|
+        break trees if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+
         key = application_key(application)
-        [key, failing_part_of(client.resource_tree(name: application.dig("metadata", "name").to_s, namespace: application.dig("metadata", "namespace").to_s))]
-      rescue ArgocdClient::Unavailable
-        [key, nil]
+        trees[key] = begin
+          failing_part_of(client.resource_tree(name: application.dig("metadata", "name").to_s, namespace: application.dig("metadata", "namespace").to_s))
+        rescue ArgocdClient::Unavailable
+          nil
+        end
       end
     end
     private_class_method :resource_trees_for
 
     def self.failing_part_of(tree)
-      { "nodes" => Array(tree["nodes"]).select { |node| FAILING_HEALTHS.include?(node.dig("health", "status")) } }
+      { "nodes" => hashes_in(tree, "nodes").select { |node| FAILING_HEALTHS.include?(node.dig("health", "status")) } }
     end
     private_class_method :failing_part_of
+
+    # The objects under a key of an answer. A list that is not a list, or an entry that is not an object, is left out.
+    def self.hashes_in(answer, key)
+      list = answer.is_a?(Hash) ? answer[key] : nil
+      list.is_a?(Array) ? list.grep(Hash) : []
+    end
+    private_class_method :hashes_in
 
     def self.application_key(application)
       "#{application.dig("metadata", "namespace")}/#{application.dig("metadata", "name")}"
@@ -186,12 +201,12 @@ module RubylodeArgocd
     # resource_trees maps "namespace/name" to the tree asked for that app (nil when the call failed). Leave it nil when
     # no trees were asked for at all.
     def self.rows_from(answer, resource_trees = nil)
-      rows = Array(answer["items"]).map { |application| row_from(application, resource_trees) }
+      rows = hashes_in(answer, "items").map { |application| row_from(application, resource_trees) }
       rows.sort_by { |row| [row.needs_attention ? 0 : 1, row.name] }
     end
 
     def self.row_from(application, resource_trees)
-      sources = Array(application.dig("spec", "sources"))
+      sources = hashes_in(application["spec"], "sources")
       revision = application.dig("status", "sync", "revision").to_s
       health = application.dig("status", "health", "status").to_s
       key = application_key(application)
@@ -216,8 +231,8 @@ module RubylodeArgocd
     # because they carry the message.
     def self.failing_resources_from(application, tree)
       found = {}
-      Array(application.dig("status", "resources")).each { |resource| add_failing(found, resource) }
-      Array(tree && tree["nodes"]).each { |node| add_failing(found, node) }
+      hashes_in(application["status"], "resources").each { |resource| add_failing(found, resource) }
+      hashes_in(tree, "nodes").each { |node| add_failing(found, node) }
       found.values
     end
     private_class_method :failing_resources_from
