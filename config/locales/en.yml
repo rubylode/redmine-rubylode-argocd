@@ -31,8 +31,19 @@ en:
     unknown_apps: "Not found in %{instance}: %{apps}"
     status:
       unavailable: Status unavailable
+      not_set_up: Argo CD is not set up yet
     hints:
       reason: "Why: %{reason}"
+      not_configured: "The block is not set up yet. Add an Argo CD instance in the plugin settings."
+      not_configured_link: Open the settings
+    widget:
+      need_attention:
+        one: "%{count} needs attention"
+        other: "%{count} need attention"
+    status_plugin:
+      missing_html: "Install %{link} to see this with the other status blocks on one page."
+      installed_html: "Rubylode Status is installed, so this block shows on the %{link}."
+      status_page: Status page
     errors:
       token_missing: "No token for %{name}"
       insecure_connection: 'The Argo CD address is not https, so the token is not sent. Use https://, or check "Allow plain http".'
@@ -41,3 +52,12 @@ en:
       answer_unreadable: "Argo CD's answer could not be read"
       unreachable: "Argo CD could not be reached (%{error_class})"
       argocd_did_not_answer: Argo CD did not answer
+      path_must_start_with_slash: "a path must start with / (for example /issues)"
+      path_has_host: "give the path only, without http:// or a host name"
+      path_has_query: "leave out the ? and # parts; query strings are ignored"
+      path_has_space: "a path cannot contain spaces"
+      path_too_long: "a path can have at most %{maximum} characters"
+      path_too_many: "at most %{maximum} paths can be listed"
+  my:
+    blocks:
+      rubylode_argocd_status: Argo CD

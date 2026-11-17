@@ -55,6 +55,14 @@ module RubylodeArgocd
 
     # The line above the sections. Rows of an unavailable instance are not counted.
     Summary = Struct.new(:app_count, :attention_count, :unavailable_instance_count, keyword_init: true) do
+      # What the line looks like: the page colours it by this.
+      def state
+        return :need_attention if attention_count.positive?
+        return :unavailable if unavailable_instance_count.positive?
+
+        app_count.zero? ? :no_apps : :all_fine
+      end
+
       def text
         counted = if app_count.zero?
           I18n.t("rubylode_argocd.summary.no_apps")

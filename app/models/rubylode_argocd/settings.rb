@@ -22,6 +22,7 @@ module RubylodeArgocd
     COMMENT_PREFIX = "#".freeze
     DEFAULT_BLOCK_TITLE = "Applications".freeze
     VISIBILITIES = %w[logged_in admins].freeze
+    COLUMNS = %w[left right].freeze
     # Only variables meant for this plugin may be read, so the settings cannot send another secret (the secret key
     # base, a database password) to an address of the administrator's choosing.
     TOKEN_VARIABLE_PATTERN = /\AARGOCD_[A-Z0-9_]+\z/
@@ -78,6 +79,42 @@ module RubylodeArgocd
       visibility == "admins" ? user.admin? : true
     end
 
+    def show_on_welcome_page?
+      flag?("show_on_welcome_page")
+    end
+
+    def welcome_page_column
+      column("welcome_page_column")
+    end
+
+    def show_on_my_page?
+      flag?("show_on_my_page")
+    end
+
+    def show_on_project_overview?
+      flag?("show_on_project_overview")
+    end
+
+    def project_overview_column
+      column("project_overview_column")
+    end
+
+    def show_in_top_menu?
+      flag?("show_in_top_menu")
+    end
+
+    def show_on_matching_pages?
+      flag?("show_on_matching_pages")
+    end
+
+    def matching_page_paths_text
+      @values["matching_page_paths"].to_s
+    end
+
+    def matching_page_patterns
+      show_on_matching_pages? ? PathMatcher.parse(matching_page_paths_text).patterns : []
+    end
+
     def allow_plain_http?
       %w[1 true].include?(@values["allow_plain_http"].to_s)
     end
@@ -95,6 +132,14 @@ module RubylodeArgocd
     end
 
     private
+
+    def flag?(key)
+      @values[key].to_s == "1"
+    end
+
+    def column(key)
+      COLUMNS.include?(@values[key].to_s) ? @values[key].to_s : "right"
+    end
 
     def whole_number(key)
       @values[key].to_i

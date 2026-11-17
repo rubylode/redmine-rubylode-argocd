@@ -1,0 +1,89 @@
+<%# The Argo CD status block. Other plugins can render it: render partial: "rubylode_argocd/status"
+    Optional locals: title (replaces the block title), show_title (false hides it), compact (true gives the
+    small variant for the sides of other pages: no project, last sync or revision column). It draws nothing for a
+    person the settings do not allow, and a hint for administrators while the plugin is not set up.
+    Rubylode Status passes widget and status: the Status page then draws the title and the summary, and this draws the rest. %>
+<% configuration = RubylodeArgocd::Settings.current %>
+<% if configuration.visible_to?(User.current) %>
+  <% @rubylode_argocd_rendered = true %>
+  <% stylesheet = stylesheet_link_tag("rubylode_argocd", plugin: "redmine_rubylode_argocd") %>
+  <%# A full page takes the stylesheet in its head; an AJAX render (the wiki preview) has no head, so it carries the link itself. %>
+  <% if request.xhr? %><%= stylesheet %><% else %><% content_for :header_tags, stylesheet %><% end %>
+  <% compact = local_assigns.fetch(:compact, false) %>
+  <% block_title = local_assigns[:title].presence || configuration.block_title %>
+  <% on_status_page = local_assigns.key?(:widget) %>
+  <% show_title = local_assigns.fetch(:show_title, true) && !on_status_page %>
+  <% instances = configuration.instances %>
+  <% if instances.any? %>
+    <% reports = instances.to_h { |instance| [instance, RubylodeArgocd::ApplicationStatus.report_for(instance, configuration)] } %>
+    <div class="rubylode-argocd<%= " is-compact" if compact %>">
+      <% if show_title %><h3 class="rubylode-argocd-title"><%= block_title %></h3><% end %>
+      <% unless on_status_page %>
+        <% summary = RubylodeArgocd::ApplicationStatus.summary_for(reports.values) %>
+        <p class="rubylode-argocd-summary is-<%= summary.state.to_s.dasherize %>"><%= summary.text %></p>
+      <% end %>
+      <% reports.each do |instance, report| %>
+        <div class="rubylode-argocd-instance">
+          <h3 class="rubylode-argocd-instance-name"><%= instance.name %></h3>
+          <% if report.unavailable? %>
+            <p class="rubylode-argocd-unavailable"><%= l("rubylode_argocd.status.unavailable") %></p>
+            <% if User.current.admin? %>
+              <p class="rubylode-argocd-hint"><%= l("rubylode_argocd.hints.reason", reason: report.failure_reason) %></p>
+            <% end %>
+          <% else %>
+            <% if User.current.admin? && report.unknown_apps.any? %>
+              <p class="rubylode-argocd-note"><%= l("rubylode_argocd.unknown_apps", instance: instance.name, apps: report.unknown_apps.join(", ")) %></p>
+            <% end %>
+            <table class="list rubylode-argocd-table">
+              <thead>
+                <tr>
+                  <th><%= l("rubylode_argocd.columns.app") %></th>
+                  <th class="rubylode-argocd-project"><%= l("rubylode_argocd.columns.project") %></th>
+                  <th><%= l("rubylode_argocd.columns.health") %></th>
+                  <th><%= l("rubylode_argocd.columns.sync") %></th>
+                  <th class="rubylode-argocd-last-sync"><%= l("rubylode_argocd.columns.last_sync") %></th>
+                  <th class="rubylode-argocd-revision"><%= l("rubylode_argocd.columns.revision") %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% report.rows.each do |row| %>
+                  <tr class="rubylode-argocd-row<%= " needs-attention" if row.needs_attention %>">
+                    <td class="rubylode-argocd-name"><%= link_to (row.label || row.name), "#{instance.address}/applications/#{ERB::Util.url_encode(row.namespace)}/#{ERB::Util.url_encode(row.name)}" %>
+                      <% if row.failing_resources.any? %>
+                        <ul class="rubylode-argocd-resources">
+                          <% row.failing_resources.each do |resource| %>
+                            <li class="rubylode-argocd-resource"><%= resource.message.to_s.empty? ? l("rubylode_argocd.failing_resource_without_message", kind: resource.kind, name: resource.name, health: resource.health) : l("rubylode_argocd.failing_resource", kind: resource.kind, name: resource.name, health: resource.health, message: resource.message) %></li>
+                          <% end %>
+                        </ul>
+                      <% end %>
+                      <% if row.detail_skipped %>
+                        <p class="rubylode-argocd-note"><%= l("rubylode_argocd.detail_skipped") %></p>
+                      <% end %>
+                    </td>
+                    <td class="rubylode-argocd-project"><%= row.project %></td>
+                    <td class="rubylode-argocd-health<%= " is-#{row.health.underscore.dasherize}" unless row.health.empty? %>"><%= row.health %></td>
+                    <td class="rubylode-argocd-sync<%= " is-#{row.sync.underscore.dasherize}" unless row.sync.empty? %>"><%= row.sync %></td>
+                    <td class="rubylode-argocd-last-sync">
+                      <% if row.finished_at %>
+                        <span title="<%= format_time(row.finished_at) %>"><%= l("rubylode_argocd.time_ago", time: time_ago_in_words(row.finished_at)) %></span>
+                      <% end %>
+                    </td>
+                    <td class="rubylode-argocd-revision"><%= row.source_count ? l("rubylode_argocd.source_count", count: row.source_count) : row.revision %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% elsif User.current.admin? %>
+    <div class="rubylode-argocd<%= " is-compact" if compact %>">
+      <% if show_title %><h3 class="rubylode-argocd-title"><%= block_title %></h3><% end %>
+      <p class="rubylode-argocd-hint">
+        <%= l("rubylode_argocd.hints.not_configured") %>
+        <%= link_to l("rubylode_argocd.hints.not_configured_link"), plugin_settings_path(RubylodeArgocd::Settings::PLUGIN_ID) %>
+      </p>
+    </div>
+  <% end %>
+<% end %>
