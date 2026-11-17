@@ -59,6 +59,22 @@ class RubylodeArgocdStatusPageTest < Redmine::IntegrationTest
                  request[:query]["fields"]
   end
 
+  test "a token variable that does not start with ARGOCD_ is never read or sent" do
+    ENV["REDMINE_SECRET_FOR_TEST"] = "must-not-leave-redmine"
+    configure_plugin("instances" => "Production | #{@fake_argocd.url} | REDMINE_SECRET_FOR_TEST")
+
+    log_user("admin", "admin")
+    begin
+      get "/status/argocd"
+    rescue RubylodeArgocd::ArgocdClient::Unavailable
+      # Until slice 3 gives the instance a "status unavailable" section, the refusal surfaces as this error.
+    end
+
+    assert_empty @fake_argocd.seen_requests
+  ensure
+    ENV.delete("REDMINE_SECRET_FOR_TEST")
+  end
+
   test "a second look within the cache time is answered without asking Argo CD again" do
     log_user("admin", "admin")
     get "/status/argocd"

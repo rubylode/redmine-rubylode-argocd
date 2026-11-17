@@ -38,6 +38,8 @@ module RubylodeArgocd
 
     # The parsed answer of GET /api/v1/applications.
     def applications
+      raise Unavailable, "No token for #{@instance.name}" if @instance.token.empty?
+
       uri = URI("#{@instance.address}/api/v1/applications?#{URI.encode_www_form(fields: APPLICATION_FIELDS)}")
       status, body = get(uri)
       raise Unavailable, "Argo CD answered #{status}" unless status == 200

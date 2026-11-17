@@ -20,11 +20,16 @@ module RubylodeArgocd
   class Settings
     PLUGIN_ID = "redmine_rubylode_argocd".freeze
     COMMENT_PREFIX = "#".freeze
+    # Only variables meant for this plugin may be read, so the settings cannot send another secret (the secret key
+    # base, a database password) to an address of the administrator's choosing.
+    TOKEN_VARIABLE_PATTERN = /\AARGOCD_[A-Z0-9_]+\z/
 
     # One Argo CD instance from a line `Name | address | token variable`. The token itself is read from the environment
     # each time it is needed and never stored in the settings.
     Instance = Struct.new(:name, :address, :token_variable, keyword_init: true) do
       def token
+        return "" unless TOKEN_VARIABLE_PATTERN.match?(token_variable)
+
         ENV.fetch(token_variable, "").to_s
       end
     end
