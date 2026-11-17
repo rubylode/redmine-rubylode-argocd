@@ -147,6 +147,13 @@ module RubylodeArgocd
     end
     private_class_method :application_key
 
+    # Drops what is cached for these instances, so the next load asks Argo CD again.
+    def self.forget(instances)
+      instances.each { |instance| cache.delete(cache_key_for(instance)) }
+    rescue StandardError => error
+      Rails.logger.warn("Rubylode Argo CD: cache clear failed: #{error.class}")
+    end
+
     # A cache that cannot be read or written is a miss, not an error. A time of 0 means no caching at all.
     def self.read_cache(instance)
       cache.read(cache_key_for(instance))

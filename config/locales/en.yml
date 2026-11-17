@@ -17,8 +17,69 @@ en:
     failing_resource_without_message: "%{kind} %{name} %{health}"
     detail_skipped: "Detail skipped: too many apps need a look"
     settings_page:
-      placeholder: The settings for Argo CD instances arrive in a later release.
-      instances: Instances
+      column_left: Left
+      column_right: Right
+      variable_line: "%{name}: %{variable} is %{state}"
+      variable_is_not_allowed: "not allowed: the name must start with ARGOCD_"
+      variable_is_set: "set in the environment"
+      variable_is_not_set: "not set in the environment"
+      placements_heading: Show the block on
+      placements_intro: 'Besides the macro, the page and the My page block, the block can go on these pages. All of them follow "Who may see the block" and share one cache.'
+    settings:
+      instances:
+        label: Instances
+        hint: "One Argo CD per line: Name | address | token variable. The variable is the name of an environment variable that holds an API token. The token is never saved here. Set it before Redmine starts. The name must start with ARGOCD_. Lines starting with # are ignored. Below the box you see whether each variable is set."
+        example: |-
+          Production | https://argocd.example.com | ARGOCD_PRODUCTION_TOKEN
+      allow_plain_http:
+        label: Allow plain http
+        hint: "Check this only when Argo CD is on a network you trust. The token then travels unencrypted."
+      apps_to_show:
+        label: Apps to show
+        hint: "One app per line: Instance | app name | Label. The label may be empty. Empty means every app each instance has. Lines starting with # are ignored."
+        example: |-
+          Production | billing-api | Billing
+      cache_seconds:
+        label: Cache seconds
+        hint: "Each Argo CD is asked at most once in this many seconds."
+      failure_cache_seconds:
+        label: Failure cache seconds
+        hint: "After a failed answer, that Argo CD is left alone for this many seconds."
+      timeout_seconds:
+        label: Timeout seconds
+        hint: "A request to Argo CD is given up after this many seconds."
+      block_title:
+        label: Block title
+        hint: "The heading of the block and the name of the top menu link."
+      visibility:
+        label: Who may see the block
+        logged_in: Everyone who is signed in
+        admins: Administrators only
+      show_on_welcome_page:
+        label: Welcome page
+        hint: "Adds the block to Redmine's home page for the people who may see it."
+      welcome_page_column:
+        label: Column
+      show_on_my_page:
+        label: My page
+        hint: "Adds the block to the default My page, for people who have not arranged their own. Everyone can still add it from the block list."
+      show_on_project_overview:
+        label: Project Overview page
+        hint: "Adds the block to every project's Overview page."
+      project_overview_column:
+        label: Column
+      show_on_matching_pages:
+        label: Pages matching these paths
+        hint: "Adds a small version of the block to each page whose path matches one of the paths below."
+      matching_page_paths:
+        label: Paths
+        hint: "One path per line, starting with /. * stands for anything inside one path segment, ** for anything. A query string and a trailing slash are ignored. /admin, /settings, /login and /account match only a path that starts with that prefix."
+        example: |-
+          /issues
+          /projects/*/issues
+      show_in_top_menu:
+        label: Show in the top menu
+        hint: "Adds a link to /status/argocd to the top menu, for the people who may see the block."
     summary:
       no_apps: No apps to show
       all_fine:
@@ -45,6 +106,21 @@ en:
       installed_html: "Rubylode Status is installed, so this block shows on the %{link}."
       status_page: Status page
     errors:
+      line_field_count: "needs %{count} fields separated by |, found %{found}"
+      line_name_missing: the name is empty
+      line_name_duplicate: "the name %{name} is already used"
+      instance_line_prefix: "Instances, line %{line_number}: %{message}"
+      app_line_prefix: "Apps to show, line %{line_number}: %{message}"
+      app_line_field_count: "needs at least 2 fields separated by |: Instance | app name | Label"
+      app_line_unknown_instance: "no instance named %{name} in Instances"
+      address_invalid: "the address must start with http:// or https:// and name a host"
+      environment_variable_invalid: "the token variable must start with ARGOCD_ and use only capital letters, digits and underscores. Redmine's own secrets cannot be named here."
+      plain_http_refused: 'a plain http:// address is only accepted for localhost. Use https://, or check "Allow plain http" if Argo CD is on a network you trust.'
+      number_invalid: "%{field} must be a whole number of at least %{minimum}"
+      column_invalid: The column must be Left or Right
+      visibility_invalid: Who may see the block must be one of the listed choices
+      block_title_blank: The block title cannot be empty
+      path_line_prefix: "Pages matching these paths, line %{line_number}: %{message}"
       token_missing: "No token for %{name}"
       insecure_connection: 'The Argo CD address is not https, so the token is not sent. Use https://, or check "Allow plain http".'
       redirect_refused: "Argo CD redirected to another address, so the token was not sent there"
