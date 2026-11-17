@@ -13,7 +13,10 @@ resources are failing, without a second login and without leaking a token.
    `script/scrub_fixtures.rb`.
 3. Build the plugin from the Rubylode Beszel layout, test first, one slice per session: `01-tracer.md` through
    `06-settings-page.md` in `docs/plans/argocd-status/`. Slice 1 done 2026-11-17, 7e0510e, c1f7283.
-4. Screenshots, README, CHANGELOG, then release 1.0.0 the way Rubylode Beszel does, after creating the remote.
+4. Screenshots, README, CHANGELOG, then release 1.0.0 on GitHub the way Rubylode Beszel does, after creating the
+   remote.
+5. Install the released 1.0.0 on the first production Redmine, from the GitHub release, and check the page there
+   against its Argo CD.
 
 ### Session brief
 
