@@ -1,5 +1,7 @@
 # Rubylode Argo CD for Redmine
 
+<p><img src="docs/thumbnail.png" alt="Rubylode Argo CD plugin" width="160"></p>
+
 [![tests](https://img.shields.io/github/actions/workflow/status/rubylode/redmine-rubylode-argocd/tests.yml?branch=main&label=tests)](https://github.com/rubylode/redmine-rubylode-argocd/actions/workflows/tests.yml)
 [![security](https://img.shields.io/github/actions/workflow/status/rubylode/redmine-rubylode-argocd/security.yml?branch=main&label=security)](https://github.com/rubylode/redmine-rubylode-argocd/actions/workflows/security.yml)
 [![version](https://img.shields.io/github/v/tag/rubylode/redmine-rubylode-argocd?sort=semver&label=version)](https://github.com/rubylode/redmine-rubylode-argocd/tags)
