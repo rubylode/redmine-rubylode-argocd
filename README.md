@@ -13,7 +13,7 @@ app in trouble, which of its resources are failing and why. It comes as a wiki m
 and it puts its block on the [Rubylode Status](https://github.com/rubylode/redmine-rubylode-status) page when that plugin is
 installed.
 
-Each Argo CD token stays in an environment variable and the plugin only reads. Version 1.0.0, needs Redmine 5.1 or newer,
+Each Argo CD token stays in an environment variable and the plugin only reads. Version 1.1.0, needs Redmine 5.1 or newer,
 tested against Argo CD 3.6. `docs/roadmap/ROADMAP.md` lists what is not done.
 
 Contents:
@@ -52,7 +52,7 @@ Needs Redmine 5.1 or newer, and an Argo CD 2.x or 3.x that Redmine can reach. Th
 
 From the release zip:
 
-1. Download `redmine_rubylode_argocd-1.0.0.zip` from the
+1. Download `redmine_rubylode_argocd-1.1.0.zip` from the
    [releases page](https://github.com/rubylode/redmine-rubylode-argocd/releases). A `.sha256` file sits next to it.
 2. Unpack it into Redmine's `plugins/` directory. The folder inside is already named `redmine_rubylode_argocd`.
 
@@ -113,7 +113,7 @@ value taken from your secret store). Restart Redmine after setting it. The setti
 
 | Setting | Default | Meaning |
 |---|---|---|
-| Instances | empty | One Argo CD per line: `Name | address | token variable`. For example `Production | https://argocd.example.com | ARGOCD_PRODUCTION_TOKEN`. The variable name must start with `ARGOCD_`. Lines starting with `#` are ignored. Below the box the page says whether each variable is set. |
+| Instances | empty | One Argo CD per line: `Name | address | token variable`, with an optional fourth field, `| link address`. For example `Production | https://argocd.example.com | ARGOCD_PRODUCTION_TOKEN`. The address is where Redmine calls the API, and app links use it too unless the line has a link address (see [Redmine in the same cluster](#redmine-in-the-same-cluster)). The variable name must start with `ARGOCD_`. Lines starting with `#` are ignored. Below the box the page says whether each variable is set. |
 | Allow plain http | off | See [Security](#security). |
 | Apps to show | empty | One per line: `Instance | app name | Label`. The label may be empty (the app name is used). The instance must be one named in Instances. Empty: every app each instance has. |
 | Cache seconds, Failure cache seconds, Timeout seconds | 60, 30, 3 | Each instance is asked at most once per cache window. After a failed answer it is left alone for the failure window. A request is given up after the timeout, with no second try. |
@@ -125,6 +125,18 @@ Example instances list:
 
     Production | https://argocd.example.com | ARGOCD_PRODUCTION_TOKEN
     Staging | https://argocd-staging.example.com | ARGOCD_STAGING_TOKEN
+
+### Redmine in the same cluster
+
+When Redmine runs in the same Kubernetes cluster as Argo CD, it can call Argo CD over the in-cluster Service, for example
+`http://argocd-server.argocd.svc`. No browser can resolve that name, so app links built from it go nowhere. Add the
+address people open Argo CD at as a fourth field, and the links use it:
+
+    Cluster | http://argocd-server.argocd.svc | ARGOCD_CLUSTER_TOKEN | https://argocd.example.com
+
+Redmine still calls only the API address, and the token is never sent to the link address, so the link address may be
+`http://` without "Allow plain http". The API address above is plain http and not loopback, so it needs "Allow plain
+http" checked (see [Security](#security)).
 
 Example apps list:
 
@@ -196,7 +208,8 @@ message (errors name the problem, not the token). It is read from an environment
   check is made again every time a token is read. A name like `SECRET_KEY_BASE` or `DATABASE_PASSWORD` is refused when you
   save the settings, and if it is somehow in the database anyway the token counts as missing and nothing is sent. Otherwise
   an administrator could point the plugin at one of Redmine's own secrets and an address of their choosing.
-- A token goes to one host. Each instance line binds a token to one address, and the token is sent only there. There is no
+- A token goes to one host. Each instance line binds a token to one address, and the token is sent only there. The
+  optional link address is used only to build links in the page; Redmine never calls it. There is no
   shared list of allowed hosts. A redirect is never followed, so the token cannot be passed on to another host; the block
   says "Status unavailable" and administrators see that Argo CD redirected.
 - https is required, unless the host is loopback. An `http://` address is refused when you save it, and the token is not sent

@@ -2,6 +2,12 @@
 
 All notable changes to this plugin. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-11-17
+
+### Added
+
+- An optional fourth field on each instance line, the address people open Argo CD at in their browser: `Name | address | token variable | link address`. App links use it, while Redmine still calls only the API address and never sends the token to the link address. For a Redmine in the same cluster as Argo CD, which calls the in-cluster Service (`http://argocd-server.argocd.svc`) that no browser can resolve. Lines with three fields work as before.
+
 ## [1.0.0] - 2026-11-17
 
 First release. It shows the health and sync state of the applications in one or more Argo CD servers inside Redmine, read only.

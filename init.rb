@@ -23,7 +23,7 @@ Redmine::Plugin.register :redmine_rubylode_argocd do
   author_url "https://github.com/rubylode"
   url "https://github.com/rubylode/redmine-rubylode-argocd"
   description "The health and sync state of the apps in one or more Argo CD instances: a page, a wiki macro, a My page block and a partial"
-  version "1.0.0"
+  version "1.1.0"
   requires_redmine version_or_higher: "5.1.0"
 
   # A link to the page in the top menu, shown only when the settings ask for it and only to the people allowed to see the block.
