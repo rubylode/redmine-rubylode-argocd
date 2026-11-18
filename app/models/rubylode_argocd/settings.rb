@@ -23,6 +23,8 @@ module RubylodeArgocd
     DEFAULT_BLOCK_TITLE = "Applications".freeze
     VISIBILITIES = %w[logged_in admins].freeze
     COLUMNS = %w[left right].freeze
+    # What an empty or unreadable number setting means. The same values init.rb registers as the settings defaults.
+    NUMBER_DEFAULTS = { "cache_seconds" => 60, "failure_cache_seconds" => 30, "timeout_seconds" => 3 }.freeze
     # Only variables meant for this plugin may be read, so the settings cannot send another secret (the secret key
     # base, a database password) to an address of the administrator's choosing.
     TOKEN_VARIABLE_PATTERN = /\AARGOCD_[A-Z0-9_]+\z/
@@ -127,15 +129,15 @@ module RubylodeArgocd
     end
 
     def cache_seconds
-      whole_number("cache_seconds")
+      whole_number("cache_seconds", minimum: 0)
     end
 
     def failure_cache_seconds
-      whole_number("failure_cache_seconds")
+      whole_number("failure_cache_seconds", minimum: 0)
     end
 
     def timeout_seconds
-      whole_number("timeout_seconds")
+      whole_number("timeout_seconds", minimum: 1)
     end
 
     private
@@ -148,8 +150,12 @@ module RubylodeArgocd
       COLUMNS.include?(@values[key].to_s) ? @values[key].to_s : "right"
     end
 
-    def whole_number(key)
-      @values[key].to_i
+    # A number the person typed, never below the minimum. Empty or not a number means the default, not 0: a timeout of
+    # 0 fails every call at once and a cache time of 0 turns caching off.
+    def whole_number(key, minimum:)
+      [Integer(@values[key].to_s.strip, 10), minimum].max
+    rescue ArgumentError
+      NUMBER_DEFAULTS.fetch(key)
     end
   end
 end

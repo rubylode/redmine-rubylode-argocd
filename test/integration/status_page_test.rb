@@ -47,6 +47,17 @@ class RubylodeArgocdStatusPageTest < Redmine::IntegrationTest
     assert_select "tr td.rubylode-argocd-revision", text: "3 sources"
   end
 
+test "an empty Timeout seconds and empty cache fields still show the apps" do
+  configure_plugin("instances" => "Production | #{@fake_argocd.url} | #{TOKEN_VARIABLE}",
+                   "timeout_seconds" => "", "cache_seconds" => "", "failure_cache_seconds" => "")
+  log_user("admin", "admin")
+  get "/status/argocd"
+
+  assert_response :success
+  assert_select "tbody tr", 13
+  assert_select "tr td.rubylode-argocd-name a", text: "billing-api"
+end
+
   test "the call to Argo CD carries the token from the named variable and asks only for the fields the page uses" do
     log_user("admin", "admin")
     get "/status/argocd"

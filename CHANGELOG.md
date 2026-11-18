@@ -2,6 +2,12 @@
 
 All notable changes to this plugin. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- Clearing Timeout seconds or a cache field in the settings no longer breaks every instance; an empty field means the default.
+
 ## [1.1.0] - 2026-11-17
 
 ### Added
