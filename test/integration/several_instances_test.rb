@@ -236,23 +236,61 @@ class RubylodeArgocdSeveralInstancesTest < Redmine::IntegrationTest
     assert_equal 1, applications_requests(@second).size
   end
 
-  test "an error that is not Argo CD's is not hidden as unavailable and is not cached" do
+  class UnexpectedFailure < StandardError; end
+
+  test "an unexpected error inside the client makes each instance unavailable, is cached, and never shows a token" do
     calls = 0
-    exploding = Object.new
-    exploding.define_singleton_method(:applications) do
+    exploding = lambda do |*|
       calls += 1
-      raise RuntimeError, "a time limit set by the caller"
+      raise TypeError, "broke while holding #{FIRST_TOKEN} and #{SECOND_TOKEN}"
     end
+    log = nil
 
-    replacing_method(RubylodeArgocd::ArgocdClient, :new, ->(**) { exploding }) do
+    replacing_method(Net::HTTP, :new, exploding) do
       log_user("admin", "admin")
-      2.times do
-        get "/status/argocd"
-        assert_response :internal_server_error
-      end
+      log = captured_log { 2.times { get "/status/argocd" } }
     end
 
-    assert_equal 2, calls, "nothing was cached, so the second load asked again"
+    assert_response :success
+    assert_select ".rubylode-argocd-unavailable", 2
+    assert_select ".rubylode-argocd-hint", text: /Argo CD could not be reached \(TypeError\)/, count: 2
+    assert_equal 2, calls, "one call for each of the two instances, none on the second load"
+    [FIRST_TOKEN, SECOND_TOKEN].each do |token|
+      refute_includes response.body, token
+      refute_includes log, token
+    end
+  end
+
+  test "an unexpected error while the rows are built makes each instance unavailable, and Argo CD is asked once" do
+    exploding = ->(*) { raise UnexpectedFailure, "broke while holding #{FIRST_TOKEN} and #{SECOND_TOKEN}" }
+    log = nil
+
+    replacing_method(RubylodeArgocd::ApplicationStatus, :rows_from, exploding) do
+      log_user("admin", "admin")
+      log = captured_log { 2.times { get "/status/argocd" } }
+    end
+
+    assert_response :success
+    assert_select ".rubylode-argocd-unavailable", 2
+    assert_select ".rubylode-argocd-hint", text: /#{UnexpectedFailure.name}/, count: 2
+    assert_equal 1, applications_requests(@first).size
+    assert_equal 1, applications_requests(@second).size
+    assert_includes log, UnexpectedFailure.name
+    [FIRST_TOKEN, SECOND_TOKEN].each do |token|
+      refute_includes response.body, token
+      refute_includes log, token
+    end
+  end
+
+  test "a token with a line break in it makes that instance unavailable with a clear reason and is never sent" do
+    ENV[SECOND_VARIABLE] = "second-half\nof-a-token"
+
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_select ".rubylode-argocd-instance:nth-of-type(1) tbody tr", 13
+    assert_select ".rubylode-argocd-instance:nth-of-type(2) .rubylode-argocd-hint", text: /The token for Staging contains a line break/
+    assert_empty @second.seen_requests
   end
 
   test "with three fields, each app links to the API address" do

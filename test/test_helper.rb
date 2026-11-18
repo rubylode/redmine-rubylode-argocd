@@ -67,6 +67,17 @@ module RubylodeArgocdTestHelpers
     target.define_singleton_method(name) { |*arguments, **keywords, &block| original.call(*arguments, **keywords, &block) }
   end
 
+  # Stands in for a time limit a caller (the Rubylode Status page) puts round the whole call. It counts as a caller's
+  # time limit only inside treating_as_caller_deadline.
+  class CallerTimeLimit < StandardError; end
+
+  def treating_as_caller_deadline(error_class = CallerTimeLimit)
+    RubylodeArgocd::CallerDeadline.class_names << error_class.name
+    yield
+  ensure
+    RubylodeArgocd::CallerDeadline.class_names.delete(error_class.name)
+  end
+
   # Stands in for the Status plugin's registry for the length of the block, and records what is registered.
   # The Status plugin is not mounted next to this one in the test image, so the real registry is not available here.
   class FakeStatusRegistry

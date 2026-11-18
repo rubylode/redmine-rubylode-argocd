@@ -7,7 +7,9 @@ All notable changes to this plugin. The format follows [Keep a Changelog](https:
 ### Fixed
 
 - Clearing Timeout seconds or a cache field in the settings no longer breaks every instance; an empty field means the default.
-- When the Rubylode Status page ran out of time, Argo CD was shown as unavailable everywhere for the failure cache time; now only a real Argo CD failure counts.
+- When the Rubylode Status page ran out of time, Argo CD was shown as unavailable everywhere for the failure cache time; now the Status page's time limit is left to the Status page and never cached, while every other failure still shows as unavailable.
+- An app whose status or health Argo CD sends in an odd shape, such as text or a list, is shown without a health instead of making the whole instance unavailable.
+- A token with a line break in it is refused with a clear reason instead of being sent, and spaces or a line break round the token in the environment are ignored.
 
 ## [1.1.0] - 2026-11-17
 

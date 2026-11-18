@@ -123,6 +123,7 @@ en:
       block_title_blank: The block title cannot be empty
       path_line_prefix: "Pages matching these paths, line %{line_number}: %{message}"
       token_missing: "No token for %{name}"
+      token_has_line_break: "The token for %{name} contains a line break, so it is not sent"
       insecure_connection: 'The Argo CD address is not https, so the token is not sent. Use https://, or check "Allow plain http".'
       redirect_refused: "Argo CD redirected to another address, so the token was not sent there"
       argocd_status: "Argo CD answered %{status}"

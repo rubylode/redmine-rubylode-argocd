@@ -37,7 +37,8 @@ module RubylodeArgocd
       def token
         return "" unless TOKEN_VARIABLE_PATTERN.match?(token_variable)
 
-        ENV.fetch(token_variable, "").to_s
+        # Spaces or a line break round the value, as a pasted secret often has, are not part of the token.
+        ENV.fetch(token_variable, "").to_s.strip
       end
 
       def link_address

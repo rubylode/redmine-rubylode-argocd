@@ -190,48 +190,208 @@ class RubylodeArgocdAttentionTest < ActiveSupport::TestCase
 
     assert_equal "1 of 2 need attention. 1 instance is unavailable and its apps are not counted.", summary.text
   end
-
-# Makes ArgocdClient.new hand back the given client for the length of the block.
-def with_client(client)
-  RubylodeArgocd::ArgocdClient.define_singleton_method(:new) { |**_arguments| client }
-  yield
-ensure
-  RubylodeArgocd::ArgocdClient.singleton_class.send(:remove_method, :new)
 end
 
-  # Stands in for a time limit a caller (the Status page) puts round the whole call: not Argo CD's failure, so not ours to hide.
-  class CallerTimeLimit < StandardError; end
+class RubylodeArgocdFailureHandlingTest < ActiveSupport::TestCase
+  include RubylodeArgocdTestHelpers
 
-  test "a failure that is not Argo CD's reaches the caller and nothing is cached" do
-    original_cache = RubylodeArgocd::ApplicationStatus.cache
-    RubylodeArgocd::ApplicationStatus.cache = ActiveSupport::Cache::MemoryStore.new
-    instance = RubylodeArgocd::Settings::Instance.new(name: "Production", address: "https://argocd.example.com",
-                                                      token_variable: "ARGOCD_TIME_LIMIT_TEST", link_address: "")
-    client = Object.new
-    client.define_singleton_method(:applications) { raise CallerTimeLimit }
+  FAILURE_TOKEN_VARIABLE = "ARGOCD_FAILURE_HANDLING_TEST".freeze
+  FAILURE_TOKEN = "failure-handling.token-DO-NOT-LEAK".freeze
 
-    with_client(client) do
-      assert_raises(CallerTimeLimit) { RubylodeArgocd::ApplicationStatus.report_for(instance, RubylodeArgocd::Settings.new({})) }
+  class UnexpectedFailure < StandardError; end
+
+  # A cache that fails the way the test asks, on read or on write.
+  class FailingCache < ActiveSupport::Cache::MemoryStore
+    attr_writer :failing_on
+
+    def initialize(failing_on:, error:)
+      super()
+      @failing_on = failing_on
+      @error = error
     end
-    assert_nil RubylodeArgocd::ApplicationStatus.cache.read(RubylodeArgocd::ApplicationStatus.cache_key_for(instance))
-  ensure
-    RubylodeArgocd::ApplicationStatus.cache = original_cache
+
+    def read(*arguments, **options)
+      raise @error if @failing_on == :read
+
+      super
+    end
+
+    def write(*arguments, **options)
+      raise @error if @failing_on == :write
+
+      super
+    end
   end
 
-  test "a failure of Argo CD itself is an unavailable report and is cached" do
-    original_cache = RubylodeArgocd::ApplicationStatus.cache
-    RubylodeArgocd::ApplicationStatus.cache = ActiveSupport::Cache::MemoryStore.new
-    instance = RubylodeArgocd::Settings::Instance.new(name: "Production", address: "https://argocd.example.com",
-                                                      token_variable: "ARGOCD_TIME_LIMIT_TEST", link_address: "")
-    client = Object.new
-    client.define_singleton_method(:applications) { raise RubylodeArgocd::ArgocdClient::Unavailable, "down" }
+  setup do
+    use_memory_cache
+    ENV[FAILURE_TOKEN_VARIABLE] = FAILURE_TOKEN
+    @instance = RubylodeArgocd::Settings::Instance.new(name: "Production", address: "https://argocd.example.com",
+                                                       token_variable: FAILURE_TOKEN_VARIABLE, link_address: "")
+    @configuration = RubylodeArgocd::Settings.new({})
+    @applications_calls = 0
+  end
 
-    with_client(client) do
-      report = RubylodeArgocd::ApplicationStatus.report_for(instance, RubylodeArgocd::Settings.new({}))
-      assert report.unavailable
+  teardown do
+    ENV.delete(FAILURE_TOKEN_VARIABLE)
+    restore_cache
+  end
+
+  def report
+    RubylodeArgocd::ApplicationStatus.report_for(@instance, @configuration)
+  end
+
+  def cached
+    RubylodeArgocd::ApplicationStatus.cache.read(RubylodeArgocd::ApplicationStatus.cache_key_for(@instance))
+  end
+
+  def application(name, status)
+    { "metadata" => { "name" => name, "namespace" => "argocd" }, "spec" => { "project" => "default" }, "status" => status }
+  end
+
+  def healthy_answer
+    { "items" => [application("billing", { "health" => { "status" => "Healthy" }, "sync" => { "status" => "Synced" } })] }
+  end
+
+  # Runs the block with ArgocdClient.new handing back a client that answers with `answer`, and whose resource-tree
+  # call does what `resource_tree` does.
+  def answering(answer, resource_tree: ->(**) { { "nodes" => [] } }, &block)
+    test = self
+    client = Object.new
+    client.define_singleton_method(:applications) do
+      test.instance_variable_set(:@applications_calls, test.instance_variable_get(:@applications_calls) + 1)
+      answer
     end
-    refute_nil RubylodeArgocd::ApplicationStatus.cache.read(RubylodeArgocd::ApplicationStatus.cache_key_for(instance))
-  ensure
-    RubylodeArgocd::ApplicationStatus.cache = original_cache
+    client.define_singleton_method(:resource_tree) { |**arguments| resource_tree.call(**arguments) }
+    replacing_method(RubylodeArgocd::ArgocdClient, :new, ->(**) { client }, &block)
+  end
+
+  test "a caller's time limit is told apart by class name, subclasses included" do
+    subclass = Class.new(CallerTimeLimit)
+
+    assert_includes RubylodeArgocd::CallerDeadline.class_names, "RubylodeStatus::WidgetStatus::TookTooLong"
+    refute RubylodeArgocd::CallerDeadline.raised?(CallerTimeLimit.new)
+    treating_as_caller_deadline do
+      assert RubylodeArgocd::CallerDeadline.raised?(CallerTimeLimit.new)
+      assert RubylodeArgocd::CallerDeadline.raised?(subclass.new)
+      refute RubylodeArgocd::CallerDeadline.raised?(RuntimeError.new)
+    end
+  end
+
+  test "a caller's time limit inside the call to Argo CD reaches the caller and nothing is cached" do
+    treating_as_caller_deadline do
+      replacing_method(Net::HTTP, :new, ->(*) { raise CallerTimeLimit }) do
+        assert_raises(CallerTimeLimit) { report }
+      end
+    end
+
+    assert_nil cached
+  end
+
+  test "a caller's time limit while the rows are built reaches the caller and no failure is cached" do
+    answering(healthy_answer) do
+      treating_as_caller_deadline do
+        replacing_method(RubylodeArgocd::ApplicationStatus, :rows_from, ->(*) { raise CallerTimeLimit }) do
+          assert_raises(CallerTimeLimit) { report }
+        end
+      end
+    end
+
+    refute cached.key?(RubylodeArgocd::ApplicationStatus::FAILURE_KEY)
+  end
+
+  test "a caller's time limit while the cache is read reaches the caller and Argo CD is not asked" do
+    RubylodeArgocd::ApplicationStatus.cache = FailingCache.new(failing_on: :read, error: CallerTimeLimit)
+
+    answering(healthy_answer) do
+      treating_as_caller_deadline { assert_raises(CallerTimeLimit) { report } }
+    end
+
+    assert_equal 0, @applications_calls
+  end
+
+  test "a caller's time limit while the cache is written reaches the caller and nothing is cached" do
+    cache = FailingCache.new(failing_on: :write, error: CallerTimeLimit)
+    RubylodeArgocd::ApplicationStatus.cache = cache
+
+    answering(healthy_answer) do
+      treating_as_caller_deadline { assert_raises(CallerTimeLimit) { report } }
+    end
+
+    cache.failing_on = nil
+    assert_nil cached
+  end
+
+  test "an unexpected error inside the call to Argo CD is unavailable, named by its class, and cached without the token" do
+    calls = 0
+    reports = []
+    log = captured_log do
+      replacing_method(Net::HTTP, :new, ->(*) { calls += 1; raise TypeError, "broke while holding #{FAILURE_TOKEN}" }) do
+        2.times { reports << report }
+      end
+    end
+
+    assert reports.all?(&:unavailable?)
+    assert_equal "Argo CD could not be reached (TypeError)", reports.first.failure_reason
+    assert_equal 1, calls, "the failure is cached, so the second report does not ask again"
+    assert cached.key?(RubylodeArgocd::ApplicationStatus::FAILURE_KEY)
+    refute_includes cached.to_s, FAILURE_TOKEN
+    refute_includes log, FAILURE_TOKEN
+  end
+
+  test "an unexpected error while the rows are built is unavailable, named by its class, and Argo CD is asked once" do
+    reports = []
+    log = captured_log do
+      answering(healthy_answer) do
+        replacing_method(RubylodeArgocd::ApplicationStatus, :rows_from, ->(*) { raise UnexpectedFailure, FAILURE_TOKEN }) do
+          2.times { reports << report }
+        end
+      end
+    end
+
+    assert reports.all?(&:unavailable?)
+    assert_equal UnexpectedFailure.name, reports.first.failure_reason
+    assert_equal 1, @applications_calls
+    assert_includes log, UnexpectedFailure.name
+    refute_includes log, FAILURE_TOKEN
+  end
+
+  test "an unexpected error while a resource tree is asked for leaves that app without its tree" do
+    answer = { "items" => [application("ledger", { "health" => { "status" => "Degraded" }, "sync" => { "status" => "Synced" } })] }
+
+    result = answering(answer, resource_tree: ->(**) { raise TypeError, "odd tree" }) { report }
+
+    refute result.unavailable?
+    assert_equal %w[ledger], result.rows.map(&:name)
+    refute result.rows.first.detail_skipped
+  end
+
+  test "an app whose status is a string or whose health is a list is shown without a health, and the others stay" do
+    answer = { "items" => [application("odd-status", "x"), application("odd-health", { "health" => [] }),
+                           *healthy_answer["items"]] }
+
+    result = answering(answer) { report }
+
+    refute result.unavailable?
+    assert_equal %w[billing odd-health odd-status], result.rows.map(&:name).sort
+    assert_equal ["", ""], result.rows.reject { |row| row.name == "billing" }.map(&:health)
+    assert_equal 3, RubylodeArgocd::ApplicationStatus.rows_from(answer, {}).size
+  end
+
+  test "a token with a line break in it is refused as unavailable and no request is made" do
+    calls = 0
+    ENV[FAILURE_TOKEN_VARIABLE] = "first-half\nsecond-half"
+
+    result = replacing_method(Net::HTTP, :new, ->(*) { calls += 1; raise "must not be reached" }) { report }
+
+    assert result.unavailable?
+    assert_equal "The token for Production contains a line break, so it is not sent", result.failure_reason
+    assert_equal 0, calls
+  end
+
+  test "spaces and a line break round the token in the environment are not part of it" do
+    ENV[FAILURE_TOKEN_VARIABLE] = "  #{FAILURE_TOKEN}\n"
+
+    assert_equal FAILURE_TOKEN, @instance.token
   end
 end

@@ -89,16 +89,27 @@ module RubylodeArgocd
     FAILURE_KEY = "failure".freeze
 
     # The report of one instance. Its Argo CD is asked at most once per Cache seconds, and after a failure not again
-    # for Failure cache seconds. When Argo CD fails or answers oddly, the report is an unavailable one and never an
-    # error. A failure that is not Argo CD's, such as the time limit a caller sets, is neither hidden nor cached.
+    # for Failure cache seconds. Whatever goes wrong, the report is an unavailable one and never an error, except for a
+    # time limit the caller put round the call (see CallerDeadline): that travels on and is never cached.
     def self.report_for(instance, configuration = Settings.current)
       payload = read_cache(instance) || fetch_and_cache(instance, configuration)
-      return Report.new(rows: [], unavailable: true, failure_reason: failure_reason_from(payload)) if payload.key?(FAILURE_KEY)
+      return unavailable_report(failure_reason_from(payload)) if payload.key?(FAILURE_KEY)
 
       report_from_answer(instance, payload, configuration)
+    rescue StandardError => error
+      raise if CallerDeadline.raised?(error)
+
+      Rails.logger.warn("Rubylode Argo CD: could not show #{instance.name}: #{error.class}")
+      unavailable_report(error.class.name)
     end
 
-    # An answer that cannot be turned into rows is shown as unavailable. Nothing is cached here.
+    def self.unavailable_report(reason)
+      Report.new(rows: [], unavailable: true, failure_reason: reason)
+    end
+    private_class_method :unavailable_report
+
+    # An answer that cannot be turned into rows is shown as unavailable. The answer stays cached, so Argo CD is not
+    # asked again before Cache seconds.
     def self.report_from_answer(instance, payload, configuration)
       rows = rows_from(payload["answer"], payload["resource_trees"])
       wanted = configuration.apps_to_show_for(instance.name)
@@ -107,8 +118,10 @@ module RubylodeArgocd
       Report.new(rows: narrowed_to(rows, wanted), unavailable: false, failure_reason: nil,
                  unknown_apps: wanted.keys - rows.map(&:name))
     rescue StandardError => error
+      raise if CallerDeadline.raised?(error)
+
       Rails.logger.warn("Rubylode Argo CD: could not build the section for #{instance.name}: #{error.class}")
-      Report.new(rows: [], unavailable: true, failure_reason: error.class.name)
+      unavailable_report(error.class.name)
     end
     private_class_method :report_from_answer
 
@@ -126,9 +139,12 @@ module RubylodeArgocd
       payload = { "answer" => answer, "resource_trees" => resource_trees_for(client, answer, deadline) }
       write_cache(instance, payload, configuration.cache_seconds)
       payload
-    rescue ArgocdClient::Unavailable => error
+    rescue StandardError => error
+      raise if CallerDeadline.raised?(error)
+
       Rails.logger.warn("Rubylode Argo CD: could not fetch #{instance.name}: #{error.class}")
-      payload = { FAILURE_KEY => error.message }
+      # The client's messages are scrubbed of the token; any other error is named by its class only.
+      payload = { FAILURE_KEY => error.is_a?(ArgocdClient::Unavailable) ? error.message : error.class.name }
       write_cache(instance, payload, configuration.failure_cache_seconds)
       payload
     end
@@ -137,15 +153,18 @@ module RubylodeArgocd
     # The failing part of the resource tree of each app that is not Healthy, up to the cap and the most broken first.
     # An app whose call failed is stored as nil: it shows its managed resources and no note.
     def self.resource_trees_for(client, answer, deadline)
-      candidates = hashes_in(answer, "items").reject { |application| application.dig("status", "health", "status") == HEALTHY }
-      candidates = candidates.sort_by { |application| FAILING_HEALTHS.include?(application.dig("status", "health", "status")) ? 0 : 1 }
+      candidates = hashes_in(answer, "items").reject { |application| value_at(application, "status", "health", "status") == HEALTHY }
+      candidates = candidates.sort_by { |application| FAILING_HEALTHS.include?(value_at(application, "status", "health", "status")) ? 0 : 1 }
       candidates.first(RESOURCE_TREE_LIMIT).each_with_object({}) do |application, trees|
         break trees if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
 
         key = application_key(application)
         trees[key] = begin
-          failing_part_of(client.resource_tree(name: application.dig("metadata", "name").to_s, namespace: application.dig("metadata", "namespace").to_s))
-        rescue ArgocdClient::Unavailable
+          failing_part_of(client.resource_tree(name: value_at(application, "metadata", "name").to_s,
+                                               namespace: value_at(application, "metadata", "namespace").to_s))
+        rescue StandardError => error
+          raise if CallerDeadline.raised?(error)
+
           nil
         end
       end
@@ -153,7 +172,7 @@ module RubylodeArgocd
     private_class_method :resource_trees_for
 
     def self.failing_part_of(tree)
-      { "nodes" => hashes_in(tree, "nodes").select { |node| FAILING_HEALTHS.include?(node.dig("health", "status")) } }
+      { "nodes" => hashes_in(tree, "nodes").select { |node| FAILING_HEALTHS.include?(value_at(node, "health", "status")) } }
     end
     private_class_method :failing_part_of
 
@@ -164,8 +183,20 @@ module RubylodeArgocd
     end
     private_class_method :hashes_in
 
+    # The value at a path of keys into an answer, or nil when a step on the way is not an object. Argo CD's answer is
+    # not trusted to have the shape it should: `dig` raises on a string or a list half way.
+    def self.value_at(answer, *keys)
+      keys.each do |key|
+        return nil unless answer.is_a?(Hash)
+
+        answer = answer[key]
+      end
+      answer
+    end
+    private_class_method :value_at
+
     def self.application_key(application)
-      "#{application.dig("metadata", "namespace")}/#{application.dig("metadata", "name")}"
+      "#{value_at(application, "metadata", "namespace")}/#{value_at(application, "metadata", "name")}"
     end
     private_class_method :application_key
 
@@ -173,6 +204,8 @@ module RubylodeArgocd
     def self.forget(instances)
       instances.each { |instance| cache.delete(cache_key_for(instance)) }
     rescue StandardError => error
+      raise if CallerDeadline.raised?(error)
+
       Rails.logger.warn("Rubylode Argo CD: cache clear failed: #{error.class}")
     end
 
@@ -180,6 +213,8 @@ module RubylodeArgocd
     def self.read_cache(instance)
       cache.read(cache_key_for(instance))
     rescue StandardError => error
+      raise if CallerDeadline.raised?(error)
+
       Rails.logger.warn("Rubylode Argo CD: cache read failed, carrying on without it: #{error.class}")
       nil
     end
@@ -190,6 +225,8 @@ module RubylodeArgocd
 
       cache.write(cache_key_for(instance), payload, expires_in: seconds)
     rescue StandardError => error
+      raise if CallerDeadline.raised?(error)
+
       Rails.logger.warn("Rubylode Argo CD: cache write failed, carrying on without it: #{error.class}")
     end
     private_class_method :write_cache
@@ -214,20 +251,20 @@ module RubylodeArgocd
 
     def self.row_from(application, resource_trees)
       sources = hashes_in(application["spec"], "sources")
-      revision = application.dig("status", "sync", "revision").to_s
-      health = application.dig("status", "health", "status").to_s
+      revision = value_at(application, "status", "sync", "revision").to_s
+      health = value_at(application, "status", "health", "status").to_s
       key = application_key(application)
-      sync = application.dig("status", "sync", "status").to_s
+      sync = value_at(application, "status", "sync", "status").to_s
       Row.new(
-        name: application.dig("metadata", "name").to_s,
-        namespace: application.dig("metadata", "namespace").to_s,
-        project: application.dig("spec", "project").to_s,
+        name: value_at(application, "metadata", "name").to_s,
+        namespace: value_at(application, "metadata", "namespace").to_s,
+        project: value_at(application, "spec", "project").to_s,
         health: health,
         sync: sync,
-        finished_at: time_from(application.dig("status", "operationState", "finishedAt")),
+        finished_at: time_from(value_at(application, "status", "operationState", "finishedAt")),
         revision: sources.empty? && !revision.empty? ? revision[0, SHORT_REVISION_LENGTH] : nil,
         source_count: sources.empty? ? nil : sources.size,
-        failing_resources: failing_resources_from(application, resource_trees&.dig(key)),
+        failing_resources: failing_resources_from(application, value_at(resource_trees, key)),
         detail_skipped: !resource_trees.nil? && health != HEALTHY && !resource_trees.key?(key),
         needs_attention: AttentionRule.needs_attention?(health, sync)
       )
@@ -245,12 +282,12 @@ module RubylodeArgocd
     private_class_method :failing_resources_from
 
     def self.add_failing(found, resource)
-      health = resource.dig("health", "status").to_s
+      health = value_at(resource, "health", "status").to_s
       return unless FAILING_HEALTHS.include?(health)
 
       found[[resource["kind"], resource["namespace"], resource["name"]]] = FailingResource.new(
         kind: resource["kind"].to_s, namespace: resource["namespace"].to_s, name: resource["name"].to_s,
-        health: health, message: resource.dig("health", "message")
+        health: health, message: value_at(resource, "health", "message")
       )
     end
     private_class_method :add_failing
