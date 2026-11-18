@@ -1,0 +1,29 @@
+# Publishes this private repository to the public one on GitHub (see .gitea/publish.rb). Runs only on the private Gitea:
+# the .gitea folder is never published, and GitHub ignores it.
+name: publish
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ruby
+        run: command -v ruby || (apt-get update -qq && apt-get install -y -qq ruby > /dev/null)
+      - name: Publish to GitHub
+        env:
+          PUBLISH_GITHUB_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
+          PUBLISH_GITHUB_REPOSITORY: rubylode/redmine-rubylode-argocd
+        run: |
+          git fetch --quiet --force --tags origin
+          ruby .gitea/publish.rb --apply
