@@ -61,33 +61,54 @@ module RubylodeArgocd
     def instance_errors
       names = []
       numbered_lines("instances").flat_map do |line_number, text|
-        name, address, variable = text.split("|", 3).map(&:strip)
-        problems = instance_line_problems(text, name, address, variable, names)
+        name, address, variable, link_address = text.split("|", 4).map(&:strip)
+        problems = instance_line_problems(text, name, address, variable, link_address, names)
         names << name
         problems.map { |message| t("instance_line_prefix", line_number: line_number, message: message) }
       end
     end
 
-    def instance_line_problems(text, name, address, variable, names)
-      return [t("line_field_count", count: 3, found: text.split("|", -1).size)] unless text.split("|", -1).size == 3
+    def instance_line_problems(text, name, address, variable, link_address, names)
+      field_count = text.split("|", -1).size
+      return [t("line_field_count", count: "3 or 4", found: field_count)] unless [3, 4].include?(field_count)
 
       problems = []
       problems << t("line_name_missing") if name.empty?
       problems << t("line_name_duplicate", name: name) if names.include?(name)
       problems.concat(address_problems(address))
       problems << t("environment_variable_invalid") unless variable.match?(Settings::TOKEN_VARIABLE_PATTERN)
+      problems.concat(link_address_problems(link_address)) unless link_address.to_s.empty?
       problems
     end
 
     def address_problems(address)
       uri = URI.parse(address)
-      return [t("address_invalid")] unless %w[http https].include?(uri.scheme) && !uri.host.to_s.empty?
-      return [t("address_has_extras")] if uri.userinfo || uri.query || uri.fragment
+      return [t("address_invalid")] unless web_address?(uri)
+      return [t("address_has_extras")] if extras?(uri)
       return [t("plain_http_refused")] unless SecureTransport.allowed?(uri, allow_plain_http: allow_plain_http?)
 
       []
     rescue URI::InvalidURIError
       [t("address_invalid")]
+    end
+
+    # The token is never sent to the link address, so plain http is fine there.
+    def link_address_problems(link_address)
+      uri = URI.parse(link_address)
+      return [t("link_address_invalid")] unless web_address?(uri)
+      return [t("link_address_has_extras")] if extras?(uri)
+
+      []
+    rescue URI::InvalidURIError
+      [t("link_address_invalid")]
+    end
+
+    def web_address?(uri)
+      %w[http https].include?(uri.scheme) && !uri.host.to_s.empty?
+    end
+
+    def extras?(uri)
+      uri.userinfo || uri.query || uri.fragment
     end
 
     def app_errors

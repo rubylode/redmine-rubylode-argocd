@@ -27,13 +27,19 @@ module RubylodeArgocd
     # base, a database password) to an address of the administrator's choosing.
     TOKEN_VARIABLE_PATTERN = /\AARGOCD_[A-Z0-9_]+\z/
 
-    # One Argo CD instance from a line `Name | address | token variable`. The token itself is read from the environment
-    # each time it is needed and never stored in the settings.
-    Instance = Struct.new(:name, :address, :token_variable, keyword_init: true) do
+    # One Argo CD instance from a line `Name | address | token variable | link address`. The address is where Redmine
+    # calls the API; the optional link address is where people open Argo CD in their browser, for when Redmine reaches
+    # Argo CD by a name no browser can resolve (an in-cluster Service). Nothing is ever sent to the link address. The
+    # token itself is read from the environment each time it is needed and never stored in the settings.
+    Instance = Struct.new(:name, :address, :token_variable, :link_address, keyword_init: true) do
       def token
         return "" unless TOKEN_VARIABLE_PATTERN.match?(token_variable)
 
         ENV.fetch(token_variable, "").to_s
+      end
+
+      def link_address
+        self[:link_address].to_s.empty? ? address : self[:link_address]
       end
     end
 
@@ -47,8 +53,9 @@ module RubylodeArgocd
 
     def instances
       @values["instances"].to_s.lines.map(&:strip).reject { |line| line.empty? || line.start_with?(COMMENT_PREFIX) }.map do |line|
-        name, address, token_variable = line.split("|", 3).map(&:strip)
-        Instance.new(name: name.to_s, address: address.to_s.chomp("/"), token_variable: token_variable.to_s)
+        name, address, token_variable, link_address = line.split("|", 4).map(&:strip)
+        Instance.new(name: name.to_s, address: address.to_s.chomp("/"), token_variable: token_variable.to_s,
+                     link_address: link_address.to_s.chomp("/"))
       end
     end
 

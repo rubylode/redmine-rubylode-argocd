@@ -49,7 +49,7 @@
               <tbody>
                 <% report.rows.each do |row| %>
                   <tr class="rubylode-argocd-row<%= " needs-attention" if row.needs_attention %>">
-                    <td class="rubylode-argocd-name"><%= link_to (row.label || row.name), "#{instance.address}/applications/#{ERB::Util.url_encode(row.namespace)}/#{ERB::Util.url_encode(row.name)}" %>
+                    <td class="rubylode-argocd-name"><%= link_to (row.label || row.name), "#{instance.link_address}/applications/#{ERB::Util.url_encode(row.namespace)}/#{ERB::Util.url_encode(row.name)}" %>
                       <% if row.failing_resources.any? %>
                         <ul class="rubylode-argocd-resources">
                           <% row.failing_resources.each do |resource| %>

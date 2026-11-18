@@ -259,6 +259,28 @@ class RubylodeArgocdSeveralInstancesTest < Redmine::IntegrationTest
     refute_includes log, "secret detail"
   end
 
+  test "with three fields, each app links to the API address" do
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_select ".rubylode-argocd-instance:nth-of-type(1) td.rubylode-argocd-name a[href=?]", "#{@first.url}/applications/argocd/billing-api"
+  end
+
+  test "a fourth field is where app links point, while requests still go only to the API address" do
+    configure_plugin("instances" => "Production | #{@first.url} | #{FIRST_VARIABLE} | https://argocd.example.ts.net/",
+                     "cache_seconds" => "60")
+
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    links = css_select("td.rubylode-argocd-name a").map { |link| link["href"] }
+    assert_equal 13, links.size
+    assert_equal ["argocd.example.ts.net"], links.map { |link| URI.parse(link).host }.uniq
+    assert_includes links, "https://argocd.example.ts.net/applications/argocd/billing-api"
+    refute_includes response.body, "ts.net//", "the trailing slash of the link address is dropped"
+    assert_includes applications_requests(@first).map { |seen| seen[:authorization] }, "Bearer #{FIRST_TOKEN}"
+  end
+
   test "an IPv6 address in brackets is reached" do
     ipv6_server = begin
       FakeArgocdServer.new(host: "::1").start

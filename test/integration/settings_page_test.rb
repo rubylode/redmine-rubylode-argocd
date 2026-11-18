@@ -66,13 +66,42 @@ class RubylodeArgocd::SettingsPageTest < Redmine::IntegrationTest
 
   test "each bad instance line is refused with its line number" do
     log_user("admin", "admin")
-    assert_refused({ "instances" => "Production | https://argocd.example.com" }, /Instances, line 1: needs 3 fields/)
+    assert_refused({ "instances" => "Production | https://argocd.example.com" }, /Instances, line 1: needs 3 or 4 fields/)
+    assert_refused({ "instances" => "Production | https://argocd.example.com | #{SET_VARIABLE} | https://argocd.example.ts.net | extra" },
+                   /Instances, line 1: needs 3 or 4 fields separated by \|, found 5/)
     assert_refused({ "instances" => "# note\nProduction | ftp://argocd.example.com | #{SET_VARIABLE}" }, /Instances, line 2: the address must start with http:\/\/ or https:\/\//)
     assert_refused({ "instances" => "Production | http://argocd.example.com | #{SET_VARIABLE}" }, /Instances, line 1: .*Allow plain http/)
     assert_refused({ "instances" => "Production | https://argocd.example.com | SECRET_KEY_BASE" }, /Instances, line 1: .*ARGOCD_/)
     assert_refused({ "instances" => " | https://argocd.example.com | #{SET_VARIABLE}" }, /Instances, line 1: the name is empty/)
     assert_refused({ "instances" => "Production | https://a.example.com | ARGOCD_A\nProduction | https://b.example.com | ARGOCD_B" },
                    /Instances, line 2: .*Production.* already used/)
+  end
+
+  test "a fourth field, the address people open, is accepted and kept apart from the API address" do
+    log_user("admin", "admin")
+    post SETTINGS_PATH, params: { settings: good_settings("instances" => "Production | https://argocd.example.com | #{SET_VARIABLE} | https://argocd.example.ts.net/") }
+
+    assert_redirected_to SETTINGS_PATH
+    instance = RubylodeArgocd::Settings.current.instances.first
+    assert_equal "https://argocd.example.com", instance.address
+    assert_equal "https://argocd.example.ts.net", instance.link_address
+  end
+
+  test "a plain http link address needs no Allow plain http, because the token is never sent there" do
+    log_user("admin", "admin")
+    post SETTINGS_PATH, params: { settings: good_settings("instances" => "Production | https://argocd.example.com | #{SET_VARIABLE} | http://argocd.lan") }
+
+    assert_redirected_to SETTINGS_PATH
+  end
+
+  test "a bad link address is refused with its line number" do
+    log_user("admin", "admin")
+    assert_refused({ "instances" => "Production | https://argocd.example.com | #{SET_VARIABLE} | ftp://argocd.example.ts.net" },
+                   /Instances, line 1: the link address must start with http:\/\/ or https:\/\//)
+    assert_refused({ "instances" => "Production | https://argocd.example.com | #{SET_VARIABLE} | https://someone@argocd.example.ts.net" },
+                   /Instances, line 1: the link address must be only/)
+    assert_refused({ "instances" => "Production | https://argocd.example.com | #{SET_VARIABLE} | https://argocd.example.ts.net/?a=b" },
+                   /Instances, line 1: the link address must be only/)
   end
 
   test "plain http is accepted when the box is checked, and for localhost" do
