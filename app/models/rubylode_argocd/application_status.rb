@@ -89,11 +89,17 @@ module RubylodeArgocd
     FAILURE_KEY = "failure".freeze
 
     # The report of one instance. Its Argo CD is asked at most once per Cache seconds, and after a failure not again
-    # for Failure cache seconds. Whatever goes wrong, the answer is an unavailable report and never an error.
+    # for Failure cache seconds. When Argo CD fails or answers oddly, the report is an unavailable one and never an
+    # error. A failure that is not Argo CD's, such as the time limit a caller sets, is neither hidden nor cached.
     def self.report_for(instance, configuration = Settings.current)
       payload = read_cache(instance) || fetch_and_cache(instance, configuration)
       return Report.new(rows: [], unavailable: true, failure_reason: failure_reason_from(payload)) if payload.key?(FAILURE_KEY)
 
+      report_from_answer(instance, payload, configuration)
+    end
+
+    # An answer that cannot be turned into rows is shown as unavailable. Nothing is cached here.
+    def self.report_from_answer(instance, payload, configuration)
       rows = rows_from(payload["answer"], payload["resource_trees"])
       wanted = configuration.apps_to_show_for(instance.name)
       return Report.new(rows: rows, unavailable: false, failure_reason: nil, unknown_apps: []) if wanted.empty?
@@ -104,6 +110,7 @@ module RubylodeArgocd
       Rails.logger.warn("Rubylode Argo CD: could not build the section for #{instance.name}: #{error.class}")
       Report.new(rows: [], unavailable: true, failure_reason: error.class.name)
     end
+    private_class_method :report_from_answer
 
     # Only the wanted apps, each with the label the administrator gave it.
     def self.narrowed_to(rows, wanted)
@@ -119,9 +126,9 @@ module RubylodeArgocd
       payload = { "answer" => answer, "resource_trees" => resource_trees_for(client, answer, deadline) }
       write_cache(instance, payload, configuration.cache_seconds)
       payload
-    rescue StandardError => error
+    rescue ArgocdClient::Unavailable => error
       Rails.logger.warn("Rubylode Argo CD: could not fetch #{instance.name}: #{error.class}")
-      payload = { FAILURE_KEY => error.is_a?(ArgocdClient::Unavailable) ? error.message : error.class.name }
+      payload = { FAILURE_KEY => error.message }
       write_cache(instance, payload, configuration.failure_cache_seconds)
       payload
     end

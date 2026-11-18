@@ -190,4 +190,48 @@ class RubylodeArgocdAttentionTest < ActiveSupport::TestCase
 
     assert_equal "1 of 2 need attention. 1 instance is unavailable and its apps are not counted.", summary.text
   end
+
+# Makes ArgocdClient.new hand back the given client for the length of the block.
+def with_client(client)
+  RubylodeArgocd::ArgocdClient.define_singleton_method(:new) { |**_arguments| client }
+  yield
+ensure
+  RubylodeArgocd::ArgocdClient.singleton_class.send(:remove_method, :new)
+end
+
+  # Stands in for a time limit a caller (the Status page) puts round the whole call: not Argo CD's failure, so not ours to hide.
+  class CallerTimeLimit < StandardError; end
+
+  test "a failure that is not Argo CD's reaches the caller and nothing is cached" do
+    original_cache = RubylodeArgocd::ApplicationStatus.cache
+    RubylodeArgocd::ApplicationStatus.cache = ActiveSupport::Cache::MemoryStore.new
+    instance = RubylodeArgocd::Settings::Instance.new(name: "Production", address: "https://argocd.example.com",
+                                                      token_variable: "ARGOCD_TIME_LIMIT_TEST", link_address: "")
+    client = Object.new
+    client.define_singleton_method(:applications) { raise CallerTimeLimit }
+
+    with_client(client) do
+      assert_raises(CallerTimeLimit) { RubylodeArgocd::ApplicationStatus.report_for(instance, RubylodeArgocd::Settings.new({})) }
+    end
+    assert_nil RubylodeArgocd::ApplicationStatus.cache.read(RubylodeArgocd::ApplicationStatus.cache_key_for(instance))
+  ensure
+    RubylodeArgocd::ApplicationStatus.cache = original_cache
+  end
+
+  test "a failure of Argo CD itself is an unavailable report and is cached" do
+    original_cache = RubylodeArgocd::ApplicationStatus.cache
+    RubylodeArgocd::ApplicationStatus.cache = ActiveSupport::Cache::MemoryStore.new
+    instance = RubylodeArgocd::Settings::Instance.new(name: "Production", address: "https://argocd.example.com",
+                                                      token_variable: "ARGOCD_TIME_LIMIT_TEST", link_address: "")
+    client = Object.new
+    client.define_singleton_method(:applications) { raise RubylodeArgocd::ArgocdClient::Unavailable, "down" }
+
+    with_client(client) do
+      report = RubylodeArgocd::ApplicationStatus.report_for(instance, RubylodeArgocd::Settings.new({}))
+      assert report.unavailable
+    end
+    refute_nil RubylodeArgocd::ApplicationStatus.cache.read(RubylodeArgocd::ApplicationStatus.cache_key_for(instance))
+  ensure
+    RubylodeArgocd::ApplicationStatus.cache = original_cache
+  end
 end

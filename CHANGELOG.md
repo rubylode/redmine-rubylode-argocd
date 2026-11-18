@@ -7,6 +7,7 @@ All notable changes to this plugin. The format follows [Keep a Changelog](https:
 ### Fixed
 
 - Clearing Timeout seconds or a cache field in the settings no longer breaks every instance; an empty field means the default.
+- When the Rubylode Status page ran out of time, Argo CD was shown as unavailable everywhere for the failure cache time; now only a real Argo CD failure counts.
 
 ## [1.1.0] - 2026-11-17
 

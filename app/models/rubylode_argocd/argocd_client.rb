@@ -23,6 +23,11 @@ module RubylodeArgocd
   class ArgocdClient
     class Unavailable < StandardError; end
 
+    # What a call to Argo CD can fail with. Anything else is not Argo CD's doing, for example the time limit a caller such as
+    # the Rubylode Status page puts round the whole call, and is left to travel on.
+    TRANSPORT_ERRORS = [SocketError, SystemCallError, IOError, EOFError, OpenSSL::SSL::SSLError, Net::OpenTimeout, Net::ReadTimeout,
+                        Net::HTTPBadResponse, Net::ProtocolError, Timeout::Error, URI::InvalidURIError].freeze
+
     DEFAULT_APP_NAMESPACE = "argocd".freeze
     # The most of an answer that is read. Past it the call gives up.
     MAX_BODY_BYTES = 10 * 1024 * 1024
@@ -74,7 +79,7 @@ module RubylodeArgocd
       raise Unavailable, scrub(error.message)
     rescue JSON::ParserError
       raise Unavailable, I18n.t("rubylode_argocd.errors.answer_unreadable")
-    rescue StandardError => error
+    rescue *TRANSPORT_ERRORS => error
       raise Unavailable, scrub(I18n.t("rubylode_argocd.errors.unreachable", error_class: error.class))
     end
 

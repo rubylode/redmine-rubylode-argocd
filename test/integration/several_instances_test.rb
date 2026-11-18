@@ -236,27 +236,23 @@ class RubylodeArgocdSeveralInstancesTest < Redmine::IntegrationTest
     assert_equal 1, applications_requests(@second).size
   end
 
-  test "an unexpected error while fetching is cached as a failure and logs only its class" do
+  test "an error that is not Argo CD's is not hidden as unavailable and is not cached" do
     calls = 0
     exploding = Object.new
     exploding.define_singleton_method(:applications) do
       calls += 1
-      raise RuntimeError, "secret detail of the failure"
+      raise RuntimeError, "a time limit set by the caller"
     end
-    log = nil
 
     replacing_method(RubylodeArgocd::ArgocdClient, :new, ->(**) { exploding }) do
-      log = captured_log do
-        log_user("admin", "admin")
-        2.times { get "/status/argocd" }
+      log_user("admin", "admin")
+      2.times do
+        get "/status/argocd"
+        assert_response :internal_server_error
       end
     end
 
-    assert_response :success
-    assert_select ".rubylode-argocd-unavailable", 2
-    assert_equal 2, calls, "one call for each of the two instances, none on the second load"
-    assert_includes log, "RuntimeError"
-    refute_includes log, "secret detail"
+    assert_equal 2, calls, "nothing was cached, so the second load asked again"
   end
 
   test "with three fields, each app links to the API address" do
