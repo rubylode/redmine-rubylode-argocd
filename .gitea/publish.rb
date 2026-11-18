@@ -36,7 +36,8 @@ def git(*arguments, environment: {})
 end
 
 # The extra excluded paths as the commit itself lists them in .publish-exclude, so an older commit is judged by its own list
-# and not by today's. The list itself is never published.
+# and not by today's when finding where GitHub stands. What is published leaves out both lists, so a file named in the
+# list after it was committed still stays private. The list itself is never published.
 def extra_excludes(commit)
   listed, status = Open3.capture2e("git", "show", "#{commit}:.publish-exclude")
   return [] unless status.success?
@@ -46,10 +47,10 @@ end
 
 # The tree of a commit as it would look on GitHub: the commit's files minus the excluded paths. The index is a scratch
 # file, so -f: without it git refuses when an excluded file differs between this commit, HEAD and the working copy.
-def public_tree(commit, index_file)
+def public_tree(commit, index_file, also_excluded = [])
   environment = { "GIT_INDEX_FILE" => index_file }
   git("read-tree", commit, environment: environment)
-  git("rm", "--cached", "-r", "-q", "-f", "--ignore-unmatch", "--", *(EXCLUDED_PATHS + extra_excludes(commit)), environment: environment)
+  git("rm", "--cached", "-r", "-q", "-f", "--ignore-unmatch", "--", *(EXCLUDED_PATHS + extra_excludes(commit) + also_excluded).uniq, environment: environment)
   git("write-tree", environment: environment)
 end
 
@@ -74,6 +75,8 @@ git("fetch", "--quiet", "--no-tags", remote, "+refs/heads/main:refs/publish/gith
 github_head = git("rev-parse", "refs/publish/github-main")
 github_tree = git("rev-parse", "#{github_head}^{tree}")
 
+current_excludes = extra_excludes(source)
+
 Dir.mktmpdir("publish") do |scratch|
   index_file = File.join(scratch, "index")
   history = git("rev-list", "--first-parent", "--max-count=#{SEARCH_DEPTH}", source).lines.map(&:strip)
@@ -86,7 +89,7 @@ Dir.mktmpdir("publish") do |scratch|
   parent = github_head
   parent_tree = github_tree
   pending.each do |commit|
-    tree = public_tree(commit, index_file)
+    tree = public_tree(commit, index_file, current_excludes)
     subject = git("log", "-1", "--format=%s", commit)
     if tree == parent_tree
       puts "skip #{commit[0, 7]} #{subject} (only private files changed)"
@@ -117,7 +120,7 @@ Dir.mktmpdir("publish") do |scratch|
 
   next unless tag
 
-  wanted_tree = public_tree(git("rev-parse", "#{tag}^{commit}"), index_file)
+  wanted_tree = public_tree(git("rev-parse", "#{tag}^{commit}"), index_file, current_excludes)
   candidates = git("log", "--format=%H %T", "--max-count=#{SEARCH_DEPTH}", parent).lines.map(&:split)
   target = candidates.find { _2 == wanted_tree }&.first
   fail_with "#{tag}: no published commit has its files; push main first" unless target
