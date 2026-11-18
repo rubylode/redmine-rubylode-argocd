@@ -13,7 +13,7 @@
 <% variable_state = lambda do |instance|
      if !instance.token_variable.match?(RubylodeArgocd::Settings::TOKEN_VARIABLE_PATTERN)
        l("#{page_scope}.variable_is_not_allowed")
-     elsif ENV[instance.token_variable].to_s.empty?
+     elsif !instance.token_set?
        l("#{page_scope}.variable_is_not_set")
      else
        l("#{page_scope}.variable_is_set")

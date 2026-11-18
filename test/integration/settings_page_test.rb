@@ -139,6 +139,25 @@ class RubylodeArgocd::SettingsPageTest < Redmine::IntegrationTest
     assert_not_includes response.body, SECRET_TOKEN
   end
 
+  test "a token variable holding only spaces or a line break shows as not set, and a real value as set" do
+    blank_spaces = "ARGOCD_SETTINGS_TEST_SPACES"
+    blank_newline = "ARGOCD_SETTINGS_TEST_NEWLINE"
+    ENV[blank_spaces] = "   "
+    ENV[blank_newline] = "\n"
+    configure_plugin("instances" => "Spaces | https://a.example.com | #{blank_spaces}\nNewline | https://b.example.com | #{blank_newline}\nReal | https://c.example.com | #{SET_VARIABLE}")
+    log_user("admin", "admin")
+    get SETTINGS_PATH
+
+    assert_response :success
+    assert_select ".rubylode-argocd-variable-state li", text: /Spaces: #{blank_spaces} is not set in the environment/
+    assert_select ".rubylode-argocd-variable-state li", text: /Newline: #{blank_newline} is not set in the environment/
+    assert_select ".rubylode-argocd-variable-state li", text: /Real: #{SET_VARIABLE} is set in the environment/
+    assert_not_includes response.body, SECRET_TOKEN
+  ensure
+    ENV.delete(blank_spaces)
+    ENV.delete(blank_newline)
+  end
+
   test "the page has every setting and the placements" do
     log_user("admin", "admin")
     get SETTINGS_PATH

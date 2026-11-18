@@ -41,6 +41,11 @@ module RubylodeArgocd
         ENV.fetch(token_variable, "").to_s.strip
       end
 
+      # The one rule for a token being there: the plugin and the settings page both ask this.
+      def token_set?
+        !token.empty?
+      end
+
       def link_address
         self[:link_address].to_s.empty? ? address : self[:link_address]
       end
