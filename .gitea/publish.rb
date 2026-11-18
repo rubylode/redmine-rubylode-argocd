@@ -17,7 +17,7 @@
 require "open3"
 require "tmpdir"
 
-EXCLUDED_PATHS = %w[.gitea CLAUDE.md .claude].freeze
+EXCLUDED_PATHS = %w[.gitea CLAUDE.md .claude .publish-exclude].freeze
 PRIVATE_PATTERNS = [/(\A|\/)\.env(\.(?!example(\/|\z))[^\/]*)?(\/|\z)/, /(\A|\/)CLAUDE\.md\z/, /(\A|\/)\.claude\//, /\.(pem|key|p12)\z/, /(\A|\/)id_(rsa|ed25519)/].freeze
 SEARCH_DEPTH = 500
 
@@ -35,15 +35,21 @@ def git(*arguments, environment: {})
   output.strip
 end
 
-def extra_excludes
-  File.file?(".publish-exclude") ? File.readlines(".publish-exclude", chomp: true).map(&:strip).reject { _1.empty? || _1.start_with?("#") } : []
+# The extra excluded paths as the commit itself lists them in .publish-exclude, so an older commit is judged by its own list
+# and not by today's. The list itself is never published.
+def extra_excludes(commit)
+  listed, status = Open3.capture2e("git", "show", "#{commit}:.publish-exclude")
+  return [] unless status.success?
+
+  listed.lines(chomp: true).map(&:strip).reject { _1.empty? || _1.start_with?("#") }
 end
 
-# The tree of a commit as it would look on GitHub: the commit's files minus the excluded paths.
+# The tree of a commit as it would look on GitHub: the commit's files minus the excluded paths. The index is a scratch
+# file, so -f: without it git refuses when an excluded file differs between this commit, HEAD and the working copy.
 def public_tree(commit, index_file)
   environment = { "GIT_INDEX_FILE" => index_file }
   git("read-tree", commit, environment: environment)
-  git("rm", "--cached", "-r", "-q", "--ignore-unmatch", "--", *(EXCLUDED_PATHS + extra_excludes), environment: environment)
+  git("rm", "--cached", "-r", "-q", "-f", "--ignore-unmatch", "--", *(EXCLUDED_PATHS + extra_excludes(commit)), environment: environment)
   git("write-tree", environment: environment)
 end
 
@@ -53,6 +59,14 @@ reference = ENV.fetch("GITHUB_REF", "refs/heads/main")
 source = ENV.fetch("GITHUB_SHA") { git("rev-parse", "HEAD") }
 remote = "https://x-access-token:#{token}@github.com/#{repository}.git"
 tag = reference.start_with?("refs/tags/v") ? reference.delete_prefix("refs/tags/") : nil
+
+# A tag run publishes main up to the tagged commit, so a tag on a commit that is not on Gitea main would put that commit on
+# GitHub main. Refuse it.
+if tag
+  git("fetch", "--quiet", "--no-tags", "origin", "+refs/heads/main:refs/publish/origin-main")
+  _output, on_main = Open3.capture2e("git", "merge-base", "--is-ancestor", source, "refs/publish/origin-main")
+  fail_with "#{tag} points at #{source[0, 7]}, which is not on Gitea main; tag a commit on main" unless on_main.success?
+end
 
 puts apply ? "APPLY: publishing to github.com/#{repository}" : "DRY RUN: nothing is pushed to github.com/#{repository}"
 
