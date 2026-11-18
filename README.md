@@ -15,7 +15,7 @@ app in trouble, which of its resources are failing and why. It comes as a wiki m
 and it puts its block on the [Rubylode Status](https://github.com/rubylode/redmine-rubylode-status) page when that plugin is
 installed.
 
-Each Argo CD token stays in an environment variable and the plugin only reads. Version 1.1.0, needs Redmine 5.1 or newer,
+Each Argo CD token stays in an environment variable and the plugin only reads. Version 1.1.1, needs Redmine 5.1 or newer,
 tested against Argo CD 3.6. `docs/roadmap/ROADMAP.md` lists what is not done.
 
 Contents:
@@ -54,7 +54,7 @@ Needs Redmine 5.1 or newer, and an Argo CD 2.x or 3.x that Redmine can reach. Th
 
 From the release zip:
 
-1. Download `redmine_rubylode_argocd-1.1.0.zip` from the
+1. Download `redmine_rubylode_argocd-1.1.1.zip` from the
    [releases page](https://github.com/rubylode/redmine-rubylode-argocd/releases). A `.sha256` file sits next to it.
 2. Unpack it into Redmine's `plugins/` directory. The folder inside is already named `redmine_rubylode_argocd`.
 

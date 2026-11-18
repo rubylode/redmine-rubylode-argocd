@@ -13,15 +13,15 @@ The text to paste at www.redmine.org, Plugins, New plugin. Redmine's "Check for 
 
 ## Notes for this version
 
-Version 1.1.0. The health and sync state of the apps in one or more Argo CD instances, with the failing resources of an app in trouble: a page, a wiki macro, a My page block and a partial, and a block on the Rubylode Status page. Needs Redmine 5.1 or newer. No migration. Install and settings are described in the README at https://github.com/rubylode/redmine-rubylode-argocd.
+Version 1.1.1. The health and sync state of the apps in one or more Argo CD instances, with the failing resources of an app in trouble: a page, a wiki macro, a My page block and a partial, and a block on the Rubylode Status page. Needs Redmine 5.1 or newer. No migration. Install and settings are described in the README at https://github.com/rubylode/redmine-rubylode-argocd.
 
 ## File to upload
 
-`redmine_rubylode_argocd-1.1.0.zip`, the file the GitHub release workflow publishes when the `v1.1.0` tag is pushed. Upload the same file that is attached to the GitHub release.
+`redmine_rubylode_argocd-1.1.1.zip`, the file the GitHub release workflow publishes when the `v1.1.1` tag is pushed. Upload the same file that is attached to the GitHub release.
 
 ## Checking the result
 
-The name, author and version in the listing must match what the plugin registers (`Rubylode Argo CD`, `Rubylode`, `1.1.0`). When they do, Administration, Plugins, Check for updates shows:
+The name, author and version in the listing must match what the plugin registers (`Rubylode Argo CD`, `Rubylode`, `1.1.1`). When they do, Administration, Plugins, Check for updates shows:
 
 - a green tick: the installed version is the latest one listed on redmine.org;
 - an amber warning: redmine.org lists a newer version than the installed one;

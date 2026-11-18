@@ -22,7 +22,7 @@ resources are failing, without a second login and without leaking a token.
    6aa85c9, `origin` already points there), then stop pushing to GitHub directly.
 ### Session brief
 
-Current state: 1.1.0, `bin/test` 133 runs, 852 assertions, green on the Redmine 7.0 image; CI runs the 5.1 to 7.0
+Current state: 1.1.1, `bin/test` 151 runs, 883 assertions, green on the Redmine 7.0 image; CI runs the 5.1 to 7.0
 matrix on GitHub. Every slice of the plan is built. Next: install from the GitHub release on the first production
 Redmine (item 5), then the after-1.0 items.
 
@@ -32,6 +32,7 @@ Redmine (item 5), then the after-1.0 items.
 - 2026-11-17: slice 1 (tracer) done: skeleton copied from Beszel, one instance's apps on `/status/argocd`.
 - 2026-11-17: slices 2 to 6, a security review and its fixes, README and CHANGELOG; released 1.0.0.
 - 2026-11-17: optional link address per instance, for a Redmine that calls Argo CD in-cluster; released 1.1.0.
+- 2026-11-18: an empty number setting reads as its default, and a caller's time limit is no longer shown as Argo CD being down; released 1.1.1.
 
 ## Ideas
 
