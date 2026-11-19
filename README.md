@@ -18,6 +18,8 @@ installed.
 Each Argo CD token stays in an environment variable and the plugin only reads. Version 1.1.1, needs Redmine 5.1 or newer,
 tested against Argo CD 3.6. `docs/roadmap/ROADMAP.md` lists what is not done.
 
+![The Argo CD block on its page: Production, with billing-api Degraded and job-runner Missing and out of sync, each listing its failing resources, above the healthy apps](docs/screenshots/status-trouble.png)
+
 Contents:
 
 - [What it does](#what-it-does)
@@ -140,6 +142,8 @@ Redmine still calls only the API address, and the token is never sent to the lin
 `http://` without "Allow plain http". The API address above is plain http and not loopback, so it needs "Allow plain
 http" checked (see [Security](#security)).
 
+![The plugin's settings page: the instances list with each token variable reported as set, the apps to show and the places the block can go](docs/screenshots/settings.png)
+
 Example apps list:
 
     Production | billing-api | Billing
@@ -156,6 +160,8 @@ The settings page checks each line when you save and names the line that is wron
   `compact`).
 - Rubylode Status: with that plugin installed the block also shows on its Status page, as a widget with a summary such as
   "2 need attention".
+
+![The macro on a wiki page, with the same table of apps and failing resources](docs/screenshots/wiki-macro.png)
 
 ### Status page
 
@@ -251,6 +257,12 @@ on its own:
 
 `FAKE_ARGOCD_PORT` and `FAKE_ARGOCD_TOKEN` change its port and token. The Status plugin is not in the test image, so the tests
 use a stand-in for its registry.
+
+To try the plugin by hand, `bin/demo up` starts a throwaway Redmine on http://127.0.0.1:3020 (admin / admin) next to the fake,
+with two instances (the second points at a closed port, so it shows as unavailable), a person (`sam.rivera` /
+`demo-password-1`) and the placements on. `bin/demo scenario NAME` switches what the fake reports (`one_degraded`,
+`server_error`, `unavailable`), `bin/demo restart` picks up a change to the plugin, `bin/demo down` stops it and
+`bin/demo reset` wipes it. `npm install && npm run screenshots` retakes the pictures in this README from it.
 
 Pull Requests are welcome!
 
