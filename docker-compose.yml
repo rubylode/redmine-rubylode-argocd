@@ -1,5 +1,40 @@
-# Runs the plugin's tests in a Redmine 7 image. Tests: ruby bin/test (runs the "test" service below)
+# A throwaway Redmine 7 to try the plugin in, with a fake Argo CD next to it. Not a real tracker or a real Argo CD.
+# Start: ruby bin/demo up, then open http://127.0.0.1:3020 (admin / admin).
+# The repository is mounted as the plugin, so a code change shows after "ruby bin/demo restart".
+# Wipe it: ruby bin/demo reset
+# Tests: ruby bin/test (runs the "test" service below)
 services:
+  redmine:
+    image: redmine:7.0.2
+    container_name: redmine-argocd-dev
+    ports:
+      - "127.0.0.1:3020:3000"
+    environment:
+      # The image ships without the development gems, so production is the mode it can boot in.
+      RAILS_ENV: production
+      # The token of the fake Argo CD, put here by bin/demo up. Made up, and only the fake accepts it.
+      ARGOCD_DEMO_TOKEN: ${ARGOCD_DEMO_TOKEN:-}
+    depends_on:
+      - fake_argocd
+    volumes:
+      - .:/usr/src/redmine/plugins/redmine_rubylode_argocd
+      - redmine-argocd-files:/usr/src/redmine/files
+      - redmine-argocd-sqlite:/usr/src/redmine/sqlite
+
+  # Answers the calls the plugin makes from the scrubbed fixtures.
+  # Switch what it reports with: ruby bin/demo scenario unavailable
+  fake_argocd:
+    image: redmine:7.0.2
+    container_name: fake-argocd-dev
+    ports:
+      - "127.0.0.1:9119:8080"
+    environment:
+      FAKE_ARGOCD_PORT: "8080"
+      FAKE_ARGOCD_TOKEN: ${ARGOCD_DEMO_TOKEN:-fake.argocd.token-not-a-secret}
+    command: ruby /plugin/test/support/fake_argocd_server.rb
+    volumes:
+      - .:/plugin:ro
+
   test:
     build:
       context: .
@@ -9,3 +44,7 @@ services:
       RAILS_ENV: test
     volumes:
       - .:/usr/src/redmine/plugins/redmine_rubylode_argocd
+
+volumes:
+  redmine-argocd-files:
+  redmine-argocd-sqlite:

@@ -1,0 +1,95 @@
+#!/usr/bin/env ruby
+# Rubylode Argo CD: application status from Argo CD for Redmine
+# Copyright (C) 2026  Nick Gorbikoff
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+# Runs the throwaway Redmine this plugin is developed and reviewed in, on http://127.0.0.1:3020, next to a fake
+# Argo CD on http://127.0.0.1:9119 (inside the compose network: http://fake_argocd:8080).
+#
+#   bin/demo up        start the fake, start Redmine with the fake's token in its environment, run the plugin settings
+#                      and load the demo data (once; running it again changes nothing)
+#   bin/demo restart   restart Redmine, to pick up a change to the plugin (it runs in production mode and caches code)
+#   bin/demo scenario NAME   switch what the fake reports: one_degraded (the fixtures as they are), server_error or
+#                      unavailable (Argo CD answers 500 or 401; the page caches for 5 seconds)
+#   bin/demo down      stop it, keep the data
+#   bin/demo reset     stop it and wipe the data
+require "fileutils"
+require "net/http"
+
+ROOT = File.expand_path("..", __dir__)
+PORT = 3020
+FAKE_PORT = 9119
+READY_SECONDS = 240
+SEED_SCRIPT = "plugins/redmine_rubylode_argocd/script/seed_demo.rb"
+FAKE_TOKEN = "fake.argocd.token-not-a-secret".freeze
+SCENARIOS = { "one_degraded" => "none", "server_error" => "server_error", "unavailable" => "unauthorized" }.freeze
+
+def compose(*arguments)
+  system("docker", "compose", *arguments, chdir: ROOT) || abort("docker compose #{arguments.join(' ')} failed")
+end
+
+def wait_until_ready
+  uri = URI("http://127.0.0.1:#{PORT}/login")
+  deadline = Time.now + READY_SECONDS
+  loop do
+    begin
+      return puts("Redmine is up at http://127.0.0.1:#{PORT}") if Net::HTTP.get_response(uri).code == "200"
+    rescue SystemCallError, EOFError, Net::ReadTimeout
+      nil
+    end
+    abort("Redmine did not answer within #{READY_SECONDS} seconds") if Time.now > deadline
+    sleep 3
+  end
+end
+
+def wait_for_fake
+  deadline = Time.now + 60
+  loop do
+    begin
+      return if Net::HTTP.get_response(URI("http://127.0.0.1:#{FAKE_PORT}/api/version")).code == "200"
+    rescue SystemCallError, EOFError, Net::ReadTimeout
+      nil
+    end
+    abort("The fake did not answer within 60 seconds") if Time.now > deadline
+    sleep 1
+  end
+end
+
+case ARGV.first
+when "up"
+  ENV["ARGOCD_DEMO_TOKEN"] = FAKE_TOKEN
+  compose("up", "-d", "--force-recreate", "fake_argocd")
+  wait_for_fake
+  compose("up", "-d", "--force-recreate", "redmine")
+  wait_until_ready
+  compose("exec", "-T", "redmine", "bin/rails", "runner", SEED_SCRIPT)
+when "scenario"
+  name = ARGV[1]
+  mode = SCENARIOS[name] || abort("usage: bin/demo scenario #{SCENARIOS.keys.join('|')}")
+  response = Net::HTTP.post(URI("http://127.0.0.1:#{FAKE_PORT}/__fail/#{mode}"), "")
+  abort("The fake refused: #{response.body}") unless response.code == "200"
+  puts "The fake now reports #{name}"
+when "restart"
+  ENV["ARGOCD_DEMO_TOKEN"] = FAKE_TOKEN
+  compose("restart", "redmine")
+  wait_until_ready
+when "down"
+  compose("down")
+when "reset"
+  compose("down", "-v")
+else
+  abort(File.read(__FILE__)[/\A#!.*?\n(?:#.*\n)+\n((?:#.*\n)+)/m, 1].to_s.gsub(/^# ?/, ""))
+end
