@@ -22,7 +22,7 @@ resources are failing, without a second login and without leaking a token.
    6aa85c9, `origin` already points there), then stop pushing to GitHub directly.
 ### Session brief
 
-Current state: 1.1.1, `bin/test` 151 runs, 883 assertions, green on the Redmine 7.0 image; CI runs the 5.1 to 7.0
+Current state: 1.1.2, `bin/test` 163 runs, 966 assertions, green on the Redmine 7.0 image; CI runs the 5.1 to 7.0
 matrix on GitHub. Every slice of the plan is built. Next: install from the GitHub release on the first production
 Redmine (item 5), then the after-1.0 items.
 

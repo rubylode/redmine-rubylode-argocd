@@ -2,6 +2,18 @@
 
 All notable changes to this plugin. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.2] - 2026-11-19
+
+No change to what the plugin does. This release carries the documentation and a tool for trying it.
+
+### Added
+
+- `bin/demo` starts a throwaway Redmine next to a fake Argo CD, to try the plugin by hand.
+
+### Changed
+
+- The README shows screenshots.
+
 ## [1.1.1] - 2026-11-18
 
 ### Fixed
