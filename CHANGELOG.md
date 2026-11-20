@@ -13,6 +13,7 @@ No change to what the plugin does. This release carries the documentation and a 
 ### Changed
 
 - The README shows screenshots.
+- The release zip leaves out the development scripts as well as the tests and the docs.
 
 ## [1.1.1] - 2026-11-18
 
