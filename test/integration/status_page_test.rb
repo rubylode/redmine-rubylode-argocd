@@ -93,4 +93,52 @@ end
     assert_select "tbody tr", 13
     assert_equal 1, @fake_argocd.seen_requests.count { |seen| seen[:path] == "/api/v1/applications" }
   end
+
+  test "the block links to Argo CD on the instance heading line" do
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_select ".rubylode-argocd-instance-header .rubylode-argocd-instance-name"
+    assert_select ".rubylode-argocd-instance-header a.rubylode-argocd-source-link.external[href=?]", @fake_argocd.url, text: "Open Argo CD", count: 1
+    assert_select "a.rubylode-argocd-source-link[target]", 0
+    assert_no_match(/fake\.argocd\.token/, response.body)
+  end
+
+  test "the link uses the link address of the line when there is one" do
+    configure_plugin("instances" => "Cluster | #{@fake_argocd.url} | #{TOKEN_VARIABLE} | https://argocd.example.com")
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_select "a.rubylode-argocd-source-link[href=?]", "https://argocd.example.com", text: "Open Argo CD"
+  end
+
+  test "the link still shows when Argo CD cannot be reached" do
+    ENV["REDMINE_SECRET_FOR_TEST"] = "must-not-leave-redmine"
+    configure_plugin("instances" => "Production | #{@fake_argocd.url} | REDMINE_SECRET_FOR_TEST")
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_select ".rubylode-argocd-unavailable", text: "Status unavailable"
+    assert_select "a.rubylode-argocd-source-link[href=?]", @fake_argocd.url, text: "Open Argo CD"
+  ensure
+    ENV.delete("REDMINE_SECRET_FOR_TEST")
+  end
+
+  test "an instance whose address is not a web address gets no link" do
+    configure_plugin("instances" => "Production | ftp://argocd.example.com | #{TOKEN_VARIABLE}")
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_select ".rubylode-argocd-instance-name", text: "Production"
+    assert_select "a.rubylode-argocd-source-link", 0
+  end
+
+  test "there is no link in the not-set-up hint" do
+    configure_plugin("instances" => "")
+    log_user("admin", "admin")
+    get "/status/argocd"
+
+    assert_select ".rubylode-argocd-hint"
+    assert_select "a.rubylode-argocd-source-link", 0
+  end
 end

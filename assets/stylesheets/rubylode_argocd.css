@@ -95,8 +95,19 @@ body.dark .rubylode-argocd {
   margin-bottom: var(--rubylode-argocd-gap);
 }
 
+.rubylode-argocd-instance-header {
+  align-items: baseline;
+  display: flex;
+  gap: var(--rubylode-argocd-gap);
+  justify-content: space-between;
+}
+
 .rubylode-argocd-instance-name {
   margin: 0 0 6px;
+}
+
+.rubylode-argocd-source-link {
+  margin-left: auto;
 }
 
 .rubylode-argocd-unavailable {

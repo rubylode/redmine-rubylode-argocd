@@ -9,6 +9,7 @@ en:
       sync: Sync
       last_sync: Last sync
       revision: Revision
+    source_link: Open Argo CD
     time_ago: "%{time} ago"
     source_count:
       one: "1 source"

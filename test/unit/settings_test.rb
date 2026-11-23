@@ -61,4 +61,25 @@ class RubylodeArgocd::SettingsTest < ActiveSupport::TestCase
       assert_equal registered[key].to_i, settings_with({}).public_send(key), key
     end
   end
+
+def instance_from(line)
+  settings_with("instances" => line).instances.first
+end
+
+test "the source link address is the link address when the line has one" do
+  instance = instance_from("Cluster | http://argocd-server.argocd.svc | ARGOCD_X | https://argocd.example.com/")
+
+  assert_equal "https://argocd.example.com", instance.source_link_address
+end
+
+test "the source link address falls back to the API address when the link address is empty, as app links do" do
+  assert_equal "https://argocd.example.com", instance_from("Production | https://argocd.example.com | ARGOCD_X").source_link_address
+  assert_equal "https://argocd.example.com", instance_from("Production | https://argocd.example.com | ARGOCD_X | ").source_link_address
+end
+
+test "a source link address that is not a web address is nil" do
+  assert_nil instance_from("Production | javascript:alert(1) | ARGOCD_X").source_link_address
+  assert_nil instance_from("Production | https://argocd.example.com | ARGOCD_X | ftp://argocd.example.com").source_link_address
+  assert_nil instance_from("Production | | ARGOCD_X").source_link_address
+end
 end

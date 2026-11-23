@@ -87,4 +87,14 @@ class RubylodeArgocdStatusPluginTest < Redmine::IntegrationTest
   ensure
     User.current = nil
   end
+
+  test "on the Status page the partial also draws the link to Argo CD" do
+    User.current = User.find(2)
+    html = ApplicationController.render(partial: "rubylode_argocd/status", locals: { widget: Object.new, status: Object.new }, assigns: {}, formats: [:html])
+
+    assert_includes html, "rubylode-argocd-source-link"
+    assert_includes html, "Open Argo CD"
+  ensure
+    User.current = nil
+  end
 end

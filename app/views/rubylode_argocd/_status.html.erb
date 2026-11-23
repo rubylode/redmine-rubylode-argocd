@@ -25,7 +25,12 @@
       <% end %>
       <% reports.each do |instance, report| %>
         <div class="rubylode-argocd-instance">
-          <h3 class="rubylode-argocd-instance-name"><%= instance.name %></h3>
+          <div class="rubylode-argocd-instance-header">
+            <h3 class="rubylode-argocd-instance-name"><%= instance.name %></h3>
+            <% if instance.source_link_address %>
+              <%= link_to l("rubylode_argocd.source_link"), instance.source_link_address, class: "external rubylode-argocd-source-link" %>
+            <% end %>
+          </div>
           <% if report.unavailable? %>
             <p class="rubylode-argocd-unavailable"><%= l("rubylode_argocd.status.unavailable") %></p>
             <% if User.current.admin? %>

@@ -49,6 +49,11 @@ module RubylodeArgocd
       def link_address
         self[:link_address].to_s.empty? ? address : self[:link_address]
       end
+
+      # Where the "Open Argo CD" link goes: the same address the app links use, and only when it is a web address.
+      def source_link_address
+        link_address.match?(%r{\Ahttps?://}i) ? link_address : nil
+      end
     end
 
     def self.current
