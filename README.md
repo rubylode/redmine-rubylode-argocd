@@ -15,7 +15,7 @@ app in trouble, which of its resources are failing and why. It comes as a wiki m
 and it puts its block on the [Rubylode Status](https://github.com/rubylode/redmine-rubylode-status) page when that plugin is
 installed.
 
-Each Argo CD token stays in an environment variable and the plugin only reads. Version 1.1.2, needs Redmine 5.1 or newer,
+Each Argo CD token stays in an environment variable and the plugin only reads. Version 1.2.0, needs Redmine 5.1 or newer,
 tested against Argo CD 3.6. `docs/roadmap/ROADMAP.md` lists what is not done.
 
 ![The Argo CD block on its page: Production, with billing-api Degraded and job-runner Missing and out of sync, each listing its failing resources, above the healthy apps](docs/screenshots/status-trouble.png)
@@ -37,6 +37,10 @@ Asks each Argo CD instance you list for its applications and shows them in one t
 app in the Argo CD UI), project, health, sync, when it last synced, and the revision it runs. A single-source app shows its
 short revision. A multi-source app shows "3 sources", because Argo CD does not give one revision for it.
 
+Each instance heading has an "Open Argo CD" link on the right. It goes to the instance's link address, the same address the
+app links use (the API address when the line has no fourth field). It shows even when Argo CD cannot be reached, and
+not when the address is not an `http://` or `https://` one.
+
 An app needs attention when its health is Degraded, Missing or Unknown, or its sync is OutOfSync. Progressing and Suspended
 are shown but do not count. Apps that need attention come first, then the rest by name. A summary line says "All 12 apps
 healthy and synced" or "2 of 12 need attention".
@@ -56,7 +60,7 @@ Needs Redmine 5.1 or newer, and an Argo CD 2.x or 3.x that Redmine can reach. Th
 
 From the release zip:
 
-1. Download `redmine_rubylode_argocd-1.1.2.zip` from the
+1. Download `redmine_rubylode_argocd-1.2.0.zip` from the
    [releases page](https://github.com/rubylode/redmine-rubylode-argocd/releases). A `.sha256` file sits next to it.
 2. Unpack it into Redmine's `plugins/` directory. The folder inside is already named `redmine_rubylode_argocd`.
 

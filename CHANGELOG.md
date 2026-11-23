@@ -2,6 +2,12 @@
 
 All notable changes to this plugin. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.0] - 2026-11-23
+
+### Added
+
+- Each instance heading has an "Open Argo CD" link, so a person can open Argo CD from the block. It uses the instance's link address, the same one the app links use, and shows when Argo CD cannot be reached.
+
 ## [1.1.2] - 2026-11-19
 
 No change to what the plugin does. This release carries the documentation and a tool for trying it.
